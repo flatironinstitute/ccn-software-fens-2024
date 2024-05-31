@@ -4,7 +4,5 @@ channels:
   - nvidia
 dependencies:
   - pip
-  - cudatoolkit
-  - cudnn
   - python=3.10
-  - cuda-python
+  - cuda-nvcc>=12

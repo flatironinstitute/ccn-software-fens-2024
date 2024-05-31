@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONDA_OVERRIDE_CUDA="11.8" conda env update -p $NB_PYTHON_PREFIX --file environment-cuda.yml
+CONDA_OVERRIDE_CUDA="12.3" conda env update -p $NB_PYTHON_PREFIX --file environment-cuda.yml
 conda activate nemos
 conda clean --all -y
 # using -p so it doesn't fail if they already exist
