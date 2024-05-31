@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nemos_workshop_feb_2024"
+version = "0.1.0"
+authors = [
+    {name = "Edoardo Balzani", email = "ebalzani@flatironinstitute.org"},
+    {name = "William Broderick", email = "wbroderick@flatironinstitute.org"},
+    {name = "Guillaume Vejo", email = "gviejo@flatironinstitute.org"},
+    {name = "Alex Williams", email = "alex.h.williams@nyu.edu"}
+]
+description = "Utilities for Feb 2024 nemos workshop"
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["neuroscience", "Poisson-GLM"]
+license = { file = "LICENSE" }
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10"
+]
+
+# Define dependencies for the project
+dependencies = [
+    'mkdocs',
+    'mkdocs_section_index',
+    'mkdocs_literate_nav',
+    'mkdocs-material',
+    'mkdocs-gallery',
+    'pillow',
+    'h5py',
+    'matplotlib',
+    'dandi',
+    'nemos @ git+https://github.com/flatironinstitute/nemos.git',
+    'pytest',
+    'click',
+    'ipython',
+    'scikit-learn',
+]
+
+# Configure package discovery for setuptools
+[tool.setuptools.packages.find]
+where = ["src"]             # The directory where package modules are located
+include = ["workshop_utils"] # The specific package(s) to include in the distribution
+
+[tool.setuptools.package-data]
+workshop_utils = ['*.mplstyle']

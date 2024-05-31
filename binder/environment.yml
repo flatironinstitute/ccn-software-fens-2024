@@ -1,0 +1,10 @@
+name: nemos
+channels:
+  - conda-forge
+  - nvidia
+dependencies:
+  - pip
+  - cudatoolkit
+  - cudnn
+  - python=3.10
+  - cuda-python

@@ -1,0 +1,11 @@
+name: nemos
+channels:
+  - conda-forge
+  - nvidia
+dependencies:
+  - ffmpeg
+  - jax
+  - jaxlib=*=*cuda*
+  - cuda-nvcc
+  - pip:
+      - git+https://github.com/flatironinstitute/nemos-workshop-feb-2024.git

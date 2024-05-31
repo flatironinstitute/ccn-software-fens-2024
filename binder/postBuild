@@ -1,0 +1,17 @@
+#!/bin/bash
+
+CONDA_OVERRIDE_CUDA="11.8" conda env update -p $NB_PYTHON_PREFIX --file environment-cuda.yml
+conda activate nemos
+conda clean --all -y
+# using -p so it doesn't fail if they already exist
+mkdir -p notebooks/
+mkdir -p data/
+cd nemos-workshop-feb-2024/
+python scripts/strip_text.py
+python src/workshop_utils/data.py ../data/
+# this build command will fail, because the data is in the wrong place. but we
+# just want mkdocs build to create the notebooks in site/generated/for_users/,
+# which this will do.
+mkdocs build
+cd ..
+cp nemos-workshop-feb-2024/site/generated/for_users/*ipynb notebooks/
