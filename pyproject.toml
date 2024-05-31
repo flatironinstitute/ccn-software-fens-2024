@@ -43,6 +43,7 @@ dependencies = [
     'scikit-learn',
     'simplejpeg',
     'fastplotlib[notebook]',
+    'imageio',
 ]
 
 # Configure package discovery for setuptools
