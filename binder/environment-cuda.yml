@@ -7,4 +7,4 @@ dependencies:
   - jax
   - jaxlib=*=*cuda*
   - pip:
-      - git+https://github.com/flatironinstitute/nemos-workshop-feb-2024.git
+      - git+https://github.com/flatironinstitute/ccn-software-fens-2024.git
