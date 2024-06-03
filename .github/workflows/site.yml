@@ -43,7 +43,9 @@ jobs:
         python src/workshop_utils/data.py docs/data
 
     - name: Build site
-      run: mkdocs build -d _site/
+      # In order to reduce interval tqdm updates (so that rendered output is less
+      # messy), set env variable `TQDM_MININTERVAL=5`.
+      run: TQDM_MININTERVAL=5 mkdocs build -d _site/
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
