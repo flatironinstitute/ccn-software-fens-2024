@@ -1,0 +1,47 @@
+site_name: "CCN software workshop, FENS 2024"
+repo_url: https://github.com/flatironinstitute/ccn-software-fens-2024
+
+theme:
+  name: 'material'
+  features:
+   - navigation.expand
+   - navigation.top
+  palette:
+    primary: 'light blue'                   # The primary color palette for the theme
+
+plugins:
+    - search
+    - literate-nav:
+          nav_file: docs/SUMMARY.md     # navigation file for literate navigation
+    - section-index                    # plugin for creating section index
+    - gallery:
+          conf_script: docs/gallery_conf.py
+          # path to the directory containing our examples/tutorials
+          examples_dirs:
+            - docs/examples
+            - docs/just_code
+            - docs/for_users
+          # path to the directory where mkdocs will save the generated output
+          gallery_dirs:
+            - docs/generated/gallery
+            - docs/generated/just_code
+            - docs/generated/for_users
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+
+extra_javascript:
+  - javascripts/katex.js
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.js
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/contrib/auto-render.min.js
+
+extra_css:
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.7/katex.min.css
+  - assets/extra.css
+
+nav:
+    - Home: index.md
+    - Full tutorials: generated/gallery
+    - For users: generated/for_users
+    - For presenters: generated/just_code
