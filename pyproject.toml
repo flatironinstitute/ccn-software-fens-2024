@@ -44,6 +44,7 @@ dependencies = [
     'simplejpeg',
     'fastplotlib[notebook]',
     'imageio',
+    'pooch',
 ]
 
 # Configure package discovery for setuptools
