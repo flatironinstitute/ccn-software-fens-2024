@@ -32,13 +32,13 @@ First, let us see how to load in the data and reproduce the above figure, which
 we'll do using [pynapple](https://pynapple-org.github.io/pynapple/), which
 we'll use throughout this workshop, as it simplifies handling this type of
 data. After we've explored the data some, we'll introduce the Generalized
-Linear Model and how to fit it with nemos.
+Linear Model and how to fit it with NeMoS.
 
 ## Learning objectives {.keep-text}
 
 - Learn how to explore spiking data and do basic analyses using pynapple
-- Learn how to structure data for nemos
-- Learn how to fit a basic Generalized Linear Model using nemos
+- Learn how to structure data for NeMoS
+- Learn how to fit a basic Generalized Linear Model using NeMoS
 - Learn how to retrieve the parameters and predictions from a fit GLM for
   intrepetation.
 
@@ -436,7 +436,7 @@ workshop_utils.plotting.tuning_curve_plot(tuning_curve)
 # current remains on.
 
 # %%
-# ## Nemos {.strip-code}
+# ## NeMoS {.strip-code}
 #
 # ### Preparing data
 #
@@ -444,7 +444,7 @@ workshop_utils.plotting.tuning_curve_plot(tuning_curve)
 # Before we construct it, however, we need to get the data into the right
 # format.
 #
-# Nemos requires that the predictors and spike counts it operates on have the
+# NeMoS requires that the predictors and spike counts it operates on have the
 # following properties:
 #
 # - predictors and spike counts must have the same number of time points.
@@ -465,7 +465,7 @@ workshop_utils.plotting.tuning_curve_plot(tuning_curve)
 #
 #     [jax](https://github.com/google/jax) is a Google-supported python library
 #     for automatic differentiation. It has all sorts of neat features, but the
-#     most relevant of which for nemos is its GPU-compatibility and
+#     most relevant of which for NeMoS is its GPU-compatibility and
 #     just-in-time compilation (both of which make code faster with little
 #     overhead!), as well as the collection of optimizers present in
 #     [jaxopt](https://jaxopt.github.io/stable/).
@@ -477,7 +477,7 @@ workshop_utils.plotting.tuning_curve_plot(tuning_curve)
 # method from pynapple:
 #
 # <div class="notes">
-#   - Get data from pynapple to nemos-ready format:
+#   - Get data from pynapple to NeMoS-ready format:
 #   - predictors and spikes must have same number of time points
 # </div>
 
@@ -511,7 +511,7 @@ predictor = np.expand_dims(binned_current, 1)
 # grab the spike counts for our one neuron
 count = count[:, 0]
 
-# check that the dimensionality matches nemos expectation
+# check that the dimensionality matches NeMoS expectation
 print(f"predictor shape: {predictor.shape}")
 print(f"count shape: {count.shape}")
 
@@ -523,7 +523,7 @@ print(f"count shape: {count.shape}")
 #     neuron -- do you add an extra dimension? or concatenate neurons along one
 #     of the existing dimensions?
 #
-#     In nemos, we always fit Generalized Linear Models to a single neuron at a
+#     In NeMoS, we always fit Generalized Linear Models to a single neuron at a
 #     time. We'll discuss this more in the [following
 #     tutorial](../02_head_direction/), but briefly: you get the same answer
 #     whether you fit the neurons separately or simultaneously, and fitting
@@ -543,7 +543,7 @@ count = jax.numpy.asarray(count.values)
 # !!! info
 #
 #     In this example, we're being very explicit about this conversion to
-#     jax.numpy arrays. However, in general, nemos is able to properly convert
+#     jax.numpy arrays. However, in general, NeMoS is able to properly convert
 #     from pynapple objects to jax.numpy arrays without any additional steps
 #     (it can similarly convert from numpy arrays to jax.numpy arrays). Thus,
 #     in later tutorials we will omit this step.
@@ -570,7 +570,7 @@ count = jax.numpy.asarray(count.values)
 #   Regularization modifies the objective function to reflect your prior
 #   beliefs about the parameters, such as sparsity. Regularization becomes more
 #   important as the number of input features, and thus model parameters,
-#   grows. They can be found within `nemos.regularizer`.
+#   grows. They can be found within `NeMoS.regularizer`.
 #
 # !!! warning
 #
@@ -584,7 +584,7 @@ count = jax.numpy.asarray(count.values)
 #   spikes, describing the distribution of neural activity (and thus changing
 #   the log-likelihood). For now, the only possible observation model is the
 #   Poisson, though this may change in future releases. They can be found
-#   within `nemos.observation_models`.
+#   within `NeMoS.observation_models`.
 #
 # For this example, we'll use an un-regularized LBFGS solver. We'll discuss
 # regularization in a later tutorial.
@@ -770,7 +770,7 @@ print(f"log-likelihood: {log_likelihood}")
 #
 # !!! info
 #
-#     Under the hood, nemos is minimizing the negative log-likelihood, as is
+#     Under the hood, NeMoS is minimizing the negative log-likelihood, as is
 #     typical in many optimization contexts. `score` returns the real
 #     log-likelihood, however, and thus higher is better.
 #
@@ -829,7 +829,7 @@ model.score(predictor, count, score_type='pseudo-r2-Cohen')
 #   rate is exponential, which is close but not quite right. Maybe we can
 #   improve that.
 #
-# The proper way to add these in nemos makes use of `Basis` objects, which
+# The proper way to add these in NeMoS makes use of `Basis` objects, which
 # we'll explore more in later tutorials. You can try the adding the spiking or
 # current history inputs without them (though the model won't do as well), or
 # return to this example after you've learned about `Basis` objects and how to
