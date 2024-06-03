@@ -3,11 +3,13 @@ repo_url: https://github.com/flatironinstitute/ccn-software-fens-2024
 
 theme:
   name: 'material'
+  favicon: assets/ccn_small.png
+  logo: assets/flatiron-white.svg
   features:
    - navigation.expand
    - navigation.top
   palette:
-    primary: 'light blue'                   # The primary color palette for the theme
+    primary: 'custom'                   # The primary color palette for the theme
   markdown_extensions:
     - md_in_html
 
