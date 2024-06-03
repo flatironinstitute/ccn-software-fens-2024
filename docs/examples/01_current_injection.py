@@ -28,11 +28,10 @@ we generally do not have access to the intracellular voltage, so for the rest
 of this notebook, we'll use only the input current and the recorded spikes
 displayed in the first and third rows.
 
-First, let us see how to load in the data and reproduce the above figure, which
-we'll do using [pynapple](https://pynapple-org.github.io/pynapple/), which
-we'll use throughout this workshop, as it simplifies handling this type of
-data. After we've explored the data some, we'll introduce the Generalized
-Linear Model and how to fit it with NeMoS.
+First, let us see how to load in the data and reproduce the above figure, which we'll do
+using [pynapple](https://pynapple-org.github.io/pynapple/). This will largely be a
+review of what we went through yesterday. After we've explored the data some, we'll
+introduce the Generalized Linear Model and how to fit it with NeMoS.
 
 ## Learning objectives {.keep-text}
 
@@ -108,8 +107,8 @@ print(data)
 
 # %%
 #
-# The dataset contains several different pynapple objects, which we discussed
-# earlier today. Let's see how these relate to the data we visualized above:
+# The dataset contains several different pynapple objects, which we discussed yesterday.
+# Let's see how these relate to the data we visualized above:
 #
 # ![Annotated view of the data we will analyze.](../../assets/allen_data_annotated.gif)
 # <!-- this gif created with the following imagemagick command: convert -layers OptimizePlus -delay 100 allen_data_annotated-units.svg allen_data_annotated-epochs.svg allen_data_annotated-stimulus.svg allen_data_annotated-response.svg -loop 0 allen_data_annotated.gif -->
@@ -170,13 +169,11 @@ noise_interval
 # (shown in blue in the pictures above) and ignore the other two (shown in
 # gray).
 #
-# To select only one epoch from an IntervalSet, use 2 square brackets:
-#
 # <div class="notes">"
 # - Let's focus on the first epoch.
 # </div>
 
-noise_interval = noise_interval[[0]]
+noise_interval = noise_interval[0]
 noise_interval
 
 # %%
@@ -277,16 +274,14 @@ ax.set_xlabel("Time (s)")
 #
 # ### Basic analyses
 #
-# Before using the Generalized Linear Model, or any model, it's worth taking
-# some time to examine our data and think about what features are interesting
-# and worth capturing. As we discussed in [tutorial 0](../00_conceptual_intro),
-# the GLM is a model of the neuronal firing rate. However, in our experiments,
-# we do not observe the firing rate, only the spikes! Moreover, neural
-# responses are typically noisy&mdash;even in this highly controlled experiment
-# where the same current was injected over multiple trials, the spike times
-# were slightly different from trial-to-trial. No model can perfectly predict
-# spike times on an individual trial, so how do we tell if our model is doing a
-# good job?
+# Before using the Generalized Linear Model, or any model, it's worth taking some time
+# to examine our data and think about what features are interesting and worth capturing.
+# As Edoardo explained earlier today, the GLM is a model of the neuronal firing rate.
+# However, in our experiments, we do not observe the firing rate, only the spikes!
+# Moreover, neural responses are typically noisy &mdash; even in this highly controlled
+# experiment where the same current was injected over multiple trials, the spike times
+# were slightly different from trial-to-trial. No model can perfectly predict spike
+# times on an individual trial, so how do we tell if our model is doing a good job?
 #
 # Our objective function is the log-likelihood of the observed spikes given the
 # predicted firing rate. That is, we're trying to find the firing rate, as a
@@ -297,9 +292,7 @@ ax.set_xlabel("Time (s)")
 # plotted together. 
 #
 # One common way to visualize a rough estimate of firing rate is to smooth
-# the spikes by convolving them with a Gaussian filter. See section 1.2 of [*Theoretical
-#  Neuroscience*](https://boulderschool.yale.edu/sites/default/files/files/DayanAbbott.pdf)
-#  by Dayan and Abbott for a more thorough description.
+# the spikes by convolving them with a Gaussian filter.
 #
 # !!! info
 #
@@ -352,24 +345,13 @@ firing_rate = firing_rate / bin_size
 
 # %%
 #
-# Note that this changes the object's type to a
-# [`TsdFrame`](https://pynapple-org.github.io/pynapple/reference/core/time_series/)!
-#
-# <div class="notes">"
-# Note that firing_rate is a [`TsdFrame`](https://pynapple-org.github.io/pynapple/reference/core/time_series/)!
-# 
-# </div>
-print(type(firing_rate))
-
-# %%
-#
 # Now that we've done all this preparation, let's make a plot to more easily
 # visualize the data.
 
 # we're hiding the details of the plotting function for the purposes of this
 # tutorial, but you can find it in the associated github repo if you're
 # interested:
-# https://github.com/flatironinstitute/nemos-workshop-feb-2024/blob/binder/src/workshop_utils/plotting.py
+# https://github.com/flatironinstitute/ccn-workshop-fens-2024/blob/main/src/workshop_utils/plotting.py
 workshop_utils.plotting.current_injection_plot(current, spikes, firing_rate)
 
 # %%
@@ -386,9 +368,9 @@ workshop_utils.plotting.current_injection_plot(current, spikes, firing_rate)
 #   in the input as well, so this pattern in the response might be reflecting
 #   that.
 #
-# - There's some decay in firing rate as the input remains on: there are three
+# - There's some decay in firing rate as the input remains on: there are three or
 #   four "bumps" of neuronal firing in the second and third intervals and they
-#   decrease in amplitude, with first being the largest.
+#   decrease in amplitude, with the first being the largest.
 #
 # These give us some good phenomena to try and predict! But there's something
 # that's not quite obvious from the above plot: what is the relationship
@@ -497,7 +479,7 @@ print(f"count sampling rate: {count.rate/1000:.02f} KHz")
 #
 # Because we only have a single predictor feature, we'll use
 # [`np.expand_dims`](https://numpy.org/doc/stable/reference/generated/numpy.expand_dims.html)
-# to handle .
+# to add a dummy dimension.
 #
 # <div class="notes">
 #   - predictors must be 2d, spikes 1d
@@ -515,7 +497,7 @@ print(f"count shape: {count.shape}")
 #
 #     In this example, we're only fitting data for a single neuron, but you
 #     might wonder how the data should be shaped if you have more than one
-#     neuron -- do you add an extra dimension? or concatenate neurons along one
+#     neuron &mdash; do you add an extra dimension? or concatenate neurons along one
 #     of the existing dimensions?
 #
 #     In NeMoS, we always fit Generalized Linear Models to a single neuron at a
@@ -556,11 +538,11 @@ print(f"count shape: {count.shape}")
 #     solutions compare. (Different regularization schemes will always give
 #     different results.)
 #
-# - Observation model: this object links the firing rate and the observed
-#   spikes, describing the distribution of neural activity (and thus changing
-#   the log-likelihood). For now, the only possible observation model is the
-#   Poisson, though this may change in future releases. They can be found
-#   within `nemos.observation_models`.
+# - Observation model: this object links the firing rate and the observed recording,
+#   describing the distribution of neural activity (and thus changing the
+#   log-likelihood). For spike counts, you should use the Poisson observation model,
+#   whereas for calcium imaging you should use the Gamma. These can all be found within
+#   `nemos.observation_models`.
 #
 # For this example, we'll use an un-regularized LBFGS solver. We'll discuss
 # regularization in a later tutorial.
@@ -617,7 +599,7 @@ print(f"intercept_ shape: {model.intercept_.shape}")
 # First, we can use the model to predict the firing rates and compare that to
 # the smoothed spike train. By calling `predict()` we can get the model's
 # predicted firing rate for this data. Note that this is just the output of the
-# model's linear-nonlinear step, as described earlier!
+# model's linear and nonlinear steps, as described in Edoardo's presentation!
 #
 # <div class="notes">
 #   - generate and examine model predictions.
@@ -627,7 +609,7 @@ predicted_fr = model.predict(predictor)
 # convert units from spikes/bin to spikes/sec
 predicted_fr = predicted_fr / bin_size
 
-# and let's smooth the firing rate the same way that we smoothed the smoothed
+# and let's smooth the firing rate the same way that we smoothed the
 # spike train
 smooth_predicted_fr = predicted_fr.smooth(.05, size_factor=20)
 
@@ -643,20 +625,20 @@ workshop_utils.plotting.current_injection_plot(current, spikes, firing_rate,
 # What do we see above? Note that the y-axes in the final row are different for
 # each subplot!
 #
-# - Predicted firing rate increases as injected current goes up -- Success!
+# - Predicted firing rate increases as injected current goes up &mdash; Success! :tada:
 #
 # - The amplitude of the predicted firing rate only matches the observed
 #   amplitude in the third interval: it's too high in the first and too low in
-#   the second -- Failure!
+#   the second &mdash; Failure! :x:
 #
 # - Our predicted firing rate has the periodicity we see in the smoothed spike
-#   train -- Success!
+#   train &mdash; Success! :tada:
 #
 # - The predicted firing rate does not decay as the input remains on: the
-#   amplitudes are identical for each of the bumps within a given interval --
-#   Failure!
+#   amplitudes are identical for each of the bumps within a given interval &mdash;
+#   Failure! :x:
 #
-# The failure described in the second point may seem particularly confusing --
+# The failure described in the second point may seem particularly confusing &mdash;
 # approximate amplitude feels like it should be very easy to capture, so what's
 # going on?
 #
@@ -682,7 +664,7 @@ print(f"Predicted mean firing rate: {np.mean(predicted_fr)} Hz")
 # beginning of this notebook. Pynapple can help us again with this:
 #
 # <div class="notes">
-#   - examine tuning curve -- what do we see?
+#   - examine tuning curve &mdash; what do we see?
 # </div>
 
 tuning_curve_model = nap.compute_1d_tuning_curves_continuous(predicted_fr[:, np.newaxis], current, 15)
@@ -704,7 +686,7 @@ fig.axes[0].legend()
 # ### Finishing up
 #
 # There are a handful of other operations you might like to do with the GLM.
-# First, you might be wondering how to simulate spikes -- the GLM is a LNP
+# First, you might be wondering how to simulate spikes &mdash; the GLM is a LNP
 # model, but the firing rate is just the output of *LN*, its first two steps.
 # The firing rate is just the mean of a Poisson process, so we can pass it to
 # `jax.random.poisson`:
@@ -720,7 +702,7 @@ spikes = jax.random.poisson(jax.random.PRNGKey(123), predicted_fr.values)
 # Note that this is not actually that informative and, in general, it is
 # recommended that you focus on firing rates when interpreting your model. In
 # particular, if your GLM includes auto-regressive inputs (e.g., neurons are
-# connected to themselves or each other), simulate can behave poorly [^1]
+# connected to themselves or each other), simulate can behave poorly [^1].
 #
 # Secondly, you may want a number with which to evaluate your model's
 # performance. As discussed earlier, the model optimizes log-likelihood to find
