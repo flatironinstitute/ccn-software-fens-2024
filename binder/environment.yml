@@ -4,5 +4,5 @@ channels:
   - nvidia
 dependencies:
   - pip
-  - python=3.11
+  - python='3.11'
   - cuda-nvcc>=12
