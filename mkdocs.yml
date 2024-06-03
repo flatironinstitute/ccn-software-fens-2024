@@ -8,6 +8,8 @@ theme:
    - navigation.top
   palette:
     primary: 'light blue'                   # The primary color palette for the theme
+  markdown_extensions:
+    - md_in_html
 
 plugins:
     - search
@@ -27,9 +29,18 @@ plugins:
             - docs/generated/just_code
             - docs/generated/for_users
 
+# if footnotes is defined in theme doesn't work
+# If md_in_html is defined outside theme, it also results in
+# an error when building the docs.
 markdown_extensions:
+  - footnotes
   - attr_list
-  - md_in_html
+  # to prevent deprecation warning about materialx.emoji (as of mkdocs-material
+  # 9.4)
+  - pymdownx.emoji:
+        emoji_index: !!python/name:material.extensions.emoji.twemoji
+        emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
 
 extra_javascript:
   - javascripts/katex.js
