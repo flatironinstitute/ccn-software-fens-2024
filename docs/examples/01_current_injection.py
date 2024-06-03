@@ -88,8 +88,7 @@ jax.config.update("jax_enable_x64", True)
 # - Stream the data. Format is [Neurodata Without Borders (NWB) standard](https://nwb-overview.readthedocs.io/en/latest/)
 # </div>
 
-path = workshop_utils.data.download_data("allen_478498617.nwb", "https://osf.io/vf2nj/download",
-                                         '../data')
+path = workshop_utils.fetch_data("allen_478498617.nwb")
 
 # %%
 # ## Pynapple
@@ -177,7 +176,7 @@ noise_interval
 # - Let's focus on the first epoch.
 # </div>
 
-noise_interval = noise_interval.loc[[0]]
+noise_interval = noise_interval[[0]]
 noise_interval
 
 # %%
@@ -331,7 +330,8 @@ ax.set_xlabel("Time (s)")
 
 # bin size in seconds
 bin_size = 0.001
-count = spikes.count(bin_size)
+# Get spikes for neuron 0
+count = spikes[0].count(bin_size)
 count
 
 # %%
@@ -345,10 +345,8 @@ count
 # - `smooth` : convolve with a Gaussian kernel
 # </div>
 
-# the inputs to this function are the standard deviation of the gaussian and
-# the full width of the window, given in bins. So std=50 corresponds to a
-# standard deviation of 50*.001=.05 seconds
-firing_rate = count.smooth(std=50, size=1000)
+# standard deviation of .05 seconds, total size of the filter, .05 sec * 20 = 1 sec.
+firing_rate = count.smooth(std=.05, size_factor=20)
 # convert from spikes per bin to spikes per second (Hz)
 firing_rate = firing_rate / bin_size
 
@@ -452,14 +450,13 @@ workshop_utils.plotting.tuning_curve_plot(tuning_curve)
 # - predictors must be two-dimensional, with shape `(n_time_bins, n_features)`.
 #   In this example, we have a single feature (the injected current).
 #
-# - spike counts must be one-dimensional, with shape `(n_time_bins,)`. As
+# - spike counts must be one-dimensional, with shape `(n_time_bins, )`. As
 #   discussed above, `n_time_bins` must be the same for both the predictors and
 #   spike counts.
 #
 # - predictors and spike counts must be
 #   [`jax.numpy`](https://jax.readthedocs.io/en/latest/jax-101/01-jax-basics.html)
-#   arrays. As we'll see, we can easily convert between `jax.numpy` arrays,
-#   numpy arrays, and pynapple objects.
+#   arrays, `numpy` arrays, or `pynapple` `TsdFrame`/`Tsd`.
 #
 # !!! info "What is jax?"
 #
@@ -473,7 +470,7 @@ workshop_utils.plotting.tuning_curve_plot(tuning_curve)
 # First, we require that our predictors and our spike counts have the same
 # number of time bins. We can achieve this by down-sampling our current to the
 # spike counts to the proper resolution using the
-# [`bin_average`](https://pynapple-org.github.io/pynapple/reference/core/time_series/#pynapple.core.time_series.TsdTensor.bin_average)
+# [`bin_average`](https://pynapple-org.github.io/pynapple/reference/core/time_series/#pynapple.core.time_series.BaseTsd.bin_average)
 # method from pynapple:
 #
 # <div class="notes">
@@ -506,10 +503,8 @@ print(f"count sampling rate: {count.rate/1000:.02f} KHz")
 #   - predictors must be 2d, spikes 1d
 # </div>
 
-# add singleton dimensions for axis 1.
+# make sure predictor is 2d
 predictor = np.expand_dims(binned_current, 1)
-# grab the spike counts for our one neuron
-count = count[:, 0]
 
 # check that the dimensionality matches NeMoS expectation
 print(f"predictor shape: {predictor.shape}")
@@ -528,25 +523,6 @@ print(f"count shape: {count.shape}")
 #     tutorial](../02_head_direction/), but briefly: you get the same answer
 #     whether you fit the neurons separately or simultaneously, and fitting
 #     them separately can make your life easier.
-#
-# Our last step is to convert these to `jax.numpy` arrays.
-#
-# <div class="notes">
-#   - predictors and spikes must be jax arrays
-# </div>
-
-predictor = jax.numpy.asarray(predictor.values)
-count = jax.numpy.asarray(count.values)
-
-# %%
-#
-# !!! info
-#
-#     In this example, we're being very explicit about this conversion to
-#     jax.numpy arrays. However, in general, NeMoS is able to properly convert
-#     from pynapple objects to jax.numpy arrays without any additional steps
-#     (it can similarly convert from numpy arrays to jax.numpy arrays). Thus,
-#     in later tutorials we will omit this step.
 #
 # ### Fitting the model
 #
@@ -570,7 +546,7 @@ count = jax.numpy.asarray(count.values)
 #   Regularization modifies the objective function to reflect your prior
 #   beliefs about the parameters, such as sparsity. Regularization becomes more
 #   important as the number of input features, and thus model parameters,
-#   grows. They can be found within `NeMoS.regularizer`.
+#   grows. They can be found within `nemos.regularizer`.
 #
 # !!! warning
 #
@@ -584,7 +560,7 @@ count = jax.numpy.asarray(count.values)
 #   spikes, describing the distribution of neural activity (and thus changing
 #   the log-likelihood). For now, the only possible observation model is the
 #   Poisson, though this may change in future releases. They can be found
-#   within `NeMoS.observation_models`.
+#   within `nemos.observation_models`.
 #
 # For this example, we'll use an un-regularized LBFGS solver. We'll discuss
 # regularization in a later tutorial.
@@ -602,7 +578,7 @@ count = jax.numpy.asarray(count.values)
 #   - GLM objects need regularizers and observation models
 # </div>
 
-model = workshop_utils.model.GLM(regularizer=nmo.regularizer.UnRegularized(solver_name="LBFGS"))
+model = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized(solver_name="LBFGS"))
 
 # %%
 #
@@ -651,14 +627,9 @@ predicted_fr = model.predict(predictor)
 # convert units from spikes/bin to spikes/sec
 predicted_fr = predicted_fr / bin_size
 
-# let's reintroduce the time axis by defining a TsdFrame.
-
-# we must convert the firing rate to a numpy array (from jax.numpy) to make it
-# pynapple compatible
-predicted_fr = nap.TsdFrame(t=binned_current.t, d=np.asarray(predicted_fr))
 # and let's smooth the firing rate the same way that we smoothed the smoothed
 # spike train
-smooth_predicted_fr = predicted_fr.smooth(50, 1000)
+smooth_predicted_fr = predicted_fr.smooth(.05, size_factor=20)
 
 # and plot!
 workshop_utils.plotting.current_injection_plot(current, spikes, firing_rate,
@@ -714,7 +685,7 @@ print(f"Predicted mean firing rate: {np.mean(predicted_fr)} Hz")
 #   - examine tuning curve -- what do we see?
 # </div>
 
-tuning_curve_model = nap.compute_1d_tuning_curves_continuous(predicted_fr, current, 15)
+tuning_curve_model = nap.compute_1d_tuning_curves_continuous(predicted_fr[:, np.newaxis], current, 15)
 fig = workshop_utils.plotting.tuning_curve_plot(tuning_curve)
 fig.axes[0].plot(tuning_curve_model, color="tomato", label="glm")
 fig.axes[0].legend()
@@ -742,15 +713,14 @@ fig.axes[0].legend()
 #   - Finally, let's look at spiking and scoring/metrics
 # </div>
 
-spikes = jax.random.poisson(jax.random.PRNGKey(0), predicted_fr.values)
+spikes = jax.random.poisson(jax.random.PRNGKey(123), predicted_fr.values)
 
 # %%
 #
 # Note that this is not actually that informative and, in general, it is
 # recommended that you focus on firing rates when interpreting your model. In
 # particular, if your GLM includes auto-regressive inputs (e.g., neurons are
-# connected to themselves or each other), simulate can behave poorly, see
-# **XXX** for details.
+# connected to themselves or each other), simulate can behave poorly [^1]
 #
 # Secondly, you may want a number with which to evaluate your model's
 # performance. As discussed earlier, the model optimizes log-likelihood to find
@@ -835,29 +805,33 @@ model.score(predictor, count, score_type='pseudo-r2-Cohen')
 # return to this example after you've learned about `Basis` objects and how to
 # use them.
 #
+# [^1]: Arribas, Diego, Yuan Zhao, and Il Memming Park. "Rescuing neural spike train
+# models from bad MLE." Advances in Neural Information Processing Systems 33 (2020):
+# 2293-2303.
+#
 # ## Citation {.keep-text}
 #
 # The data used in this tutorial is from the Allen Brain Map, with the
 # [following
 # citation](https://knowledge.brain-map.org/data/1HEYEW7GMUKWIQW37BO/summary):
 #
-# Contributors: Agata Budzillo, Bosiljka Tasic, Brian R. Lee, Fahimeh
+# **Contributors**: Agata Budzillo, Bosiljka Tasic, Brian R. Lee, Fahimeh
 # Baftizadeh, Gabe Murphy, Hongkui Zeng, Jim Berg, Nathan Gouwens, Rachel
 # Dalley, Staci A. Sorensen, Tim Jarsky, Uygar Sümbül Zizhen Yao
 #
-# Dataset: Allen Institute for Brain Science (2020). Allen Cell Types Database
+# **Dataset**: Allen Institute for Brain Science (2020). Allen Cell Types Database
 # -- Mouse Patch-seq [dataset]. Available from
 # brain-map.org/explore/classes/multimodal-characterization.
 #
-# Primary publication: Gouwens, N.W., Sorensen, S.A., et al. (2020). Integrated
+# **Primary publication**: Gouwens, N.W., Sorensen, S.A., et al. (2020). Integrated
 # morphoelectric and transcriptomic classification of cortical GABAergic cells.
 # Cell, 183(4), 935-953.E19. https://doi.org/10.1016/j.cell.2020.09.057
 #
-# Patch-seq protocol: Lee, B. R., Budzillo, A., et al. (2021). Scaled, high
+# **Patch-seq protocol**: Lee, B. R., Budzillo, A., et al. (2021). Scaled, high
 # fidelity electrophysiological, morphological, and transcriptomic cell
 # characterization. eLife, 2021;10:e65482. https://doi.org/10.7554/eLife.65482
 #
-# Mouse VISp L2/3 glutamatergic neurons: Berg, J., Sorensen, S. A., Miller, J.,
+# **Mouse VISp L2/3 glutamatergic neurons**: Berg, J., Sorensen, S. A., Miller, J.,
 # Ting, J., et al. (2021) Human neocortical expansion involves glutamatergic
 # neuron diversification. Nature, 598(7879):151-158. doi:
 # 10.1038/s41586-021-03813-8

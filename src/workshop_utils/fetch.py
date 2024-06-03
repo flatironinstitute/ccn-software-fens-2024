@@ -70,7 +70,7 @@ def fetch_data(dataset_name: str) -> pathlib.Path:
         fname = find_shared_directory([pathlib.Path(f) for f in fname])
     else:
         fname = pathlib.Path(fname)
-    return fname
+    return fname.as_posix()
 
 
 @click.command()
