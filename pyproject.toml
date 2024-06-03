@@ -45,6 +45,7 @@ dependencies = [
     'fastplotlib[notebook]',
     'imageio',
     'pooch',
+    'rich',
 ]
 
 # Configure package discovery for setuptools
