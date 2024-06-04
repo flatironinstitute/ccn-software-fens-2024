@@ -94,4 +94,4 @@ else:
     print("Try to resolve following the suggestions above.")
     print("If you encountered many installation errors, run [bold] pip install .[/bold] (note the dot!)")
     print("If you are unable to fix your setup yourself, please come to the setup help")
-    print("in the hotel lobby from 4 to 6 pm on Saturday, June 22, and show us the output of this command.")
+    print("in the hotel, Palais Saschen Coburg room IV, from 4 to 6 pm on Saturday, June 22, and show us the output of this command.")
