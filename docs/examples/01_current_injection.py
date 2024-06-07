@@ -338,7 +338,9 @@ count
 # - `smooth` : convolve with a Gaussian kernel
 # </div>
 
-# standard deviation of .05 seconds, total size of the filter, .05 sec * 20 = 1 sec.
+# the inputs to this function are the standard deviation of the gaussian in seconds and
+# the full width of the window, in standard deviations. So std=.05 and size_factor=20
+# gives a total filter size of 0.05 sec * 20 = 1 sec.
 firing_rate = count.smooth(std=.05, size_factor=20)
 # convert from spikes per bin to spikes per second (Hz)
 firing_rate = firing_rate / bin_size
@@ -479,7 +481,7 @@ print(f"count sampling rate: {count.rate/1000:.02f} KHz")
 #
 # Because we only have a single predictor feature, we'll use
 # [`np.expand_dims`](https://numpy.org/doc/stable/reference/generated/numpy.expand_dims.html)
-# to add a dummy dimension.
+# to ensure it is a 2d array.
 #
 # <div class="notes">
 #   - predictors must be 2d, spikes 1d
@@ -538,11 +540,10 @@ print(f"count shape: {count.shape}")
 #     solutions compare. (Different regularization schemes will always give
 #     different results.)
 #
-# - Observation model: this object links the firing rate and the observed recording,
-#   describing the distribution of neural activity (and thus changing the
-#   log-likelihood). For spike counts, you should use the Poisson observation model,
-#   whereas for calcium imaging you should use the Gamma. These can all be found within
-#   `nemos.observation_models`.
+# - Observation model: this object links the firing rate and the observed data (in this
+#   case, spikes), describing the distribution of neural activity (and thus changing the
+#   log-likelihood). For spiking data, we use the Poisson observation model, but nemos
+#   provides other options for continuous data, such as calcium imaging.
 #
 # For this example, we'll use an un-regularized LBFGS solver. We'll discuss
 # regularization in a later tutorial.
@@ -700,14 +701,25 @@ spikes = jax.random.poisson(jax.random.PRNGKey(123), predicted_fr.values)
 # %%
 #
 # Note that this is not actually that informative and, in general, it is
-# recommended that you focus on firing rates when interpreting your model. In
-# particular, if your GLM includes auto-regressive inputs (e.g., neurons are
-# connected to themselves or each other), simulate can behave poorly [^1].
+# recommended that you focus on firing rates when interpreting your model.
 #
-# Secondly, you may want a number with which to evaluate your model's
+# Also, while
+# including spike history is often helpful, it can sometimes make simulations unstable:
+# if your GLM includes auto-regressive inputs (e.g., neurons are
+# connected to themselves or each other), simulations can sometimes can behave
+# poorly because of runaway excitation [^1][^2].
+#
+# Finally, you may want a number with which to evaluate your model's
 # performance. As discussed earlier, the model optimizes log-likelihood to find
 # the best-fitting weights, and we can calculate this number using its `score`
 # method:
+#
+# [^1]: Arribas, Diego, Yuan Zhao, and Il Memming Park. "Rescuing neural spike train
+# models from bad MLE." Advances in Neural Information Processing Systems 33 (2020):
+# 2293-2303.
+# [^2]: Hocker, David, and Memming Park. "Multistep inference for generalized linear
+# spiking models curbs runaway excitation." International IEEE/EMBS Conference on Neural Engineering,
+# May 2017.
 
 log_likelihood = model.score(predictor, count, score_type="log-likelihood")
 print(f"log-likelihood: {log_likelihood}")
@@ -786,10 +798,6 @@ model.score(predictor, count, score_type='pseudo-r2-Cohen')
 # current history inputs without them (though the model won't do as well), or
 # return to this example after you've learned about `Basis` objects and how to
 # use them.
-#
-# [^1]: Arribas, Diego, Yuan Zhao, and Il Memming Park. "Rescuing neural spike train
-# models from bad MLE." Advances in Neural Information Processing Systems 33 (2020):
-# 2293-2303.
 #
 # ## Citation {.keep-text}
 #
