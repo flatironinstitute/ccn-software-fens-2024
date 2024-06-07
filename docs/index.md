@@ -27,7 +27,7 @@ Before the workshop, please try to complete the following steps. If you are unab
     ```shell
     python scripts/setup.py
     ```
-6. Confirm the installation and setup completed correctly by running `.
+6. Confirm the installation and setup completed correctly by running:
     ```shell
     python scripts/check_setup.py
     ```
