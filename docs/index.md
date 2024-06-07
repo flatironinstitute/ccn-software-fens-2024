@@ -6,7 +6,10 @@ WRITE INTRO TEXT HERE
 
 Before the workshop, please try to complete the following steps. If you are unable to do so, we will be in the hotel, Palais Saschen Coburg room IV, from 4 to 6pm on Saturday, June 22 to help. Please come by!
 
-1. Clone the github repo for this workshop: `git clone https://github.com/flatironinstitute/ccn-software-fens-2024.git`.
+1. Clone the github repo for this workshop: 
+
+`git clone https://github.com/flatironinstitute/ccn-software-fens-2024.git`
+
 2. Create a new python 3.11 virtual environment. If you do not have a preferred way of managing your python virtual environments, we recommend [miniconda](https://docs.anaconda.com/free/miniconda/). After installing it (if you have not done so already), run `conda create --name fens2024 pip python=3.11`.
 3. Activate your new environment: `conda activate fens2024`
 4. Navigate to the cloned github repo and install the required dependencies. This will install pynapple, fastplotlib, and nemos, as well as jupyter and several other packages.

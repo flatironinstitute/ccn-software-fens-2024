@@ -43,7 +43,7 @@ dependencies = [
     'scikit-learn',
     'simplejpeg',
     'fastplotlib[notebook]',
-    'pyqt6',
+    'glfw',
     'imageio',
     'pooch',
     'rich',
