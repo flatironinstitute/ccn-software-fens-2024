@@ -457,6 +457,11 @@ workshop_utils.plotting.tuning_curve_plot(tuning_curve)
 # [`bin_average`](https://pynapple-org.github.io/pynapple/reference/core/time_series/#pynapple.core.time_series.BaseTsd.bin_average)
 # method from pynapple:
 #
+# !!! info
+#
+#     We refer to the model inputs as both "the predictors" and "the design matrix," a
+#     term which comes from statistics.
+#
 # <div class="notes">
 #   - Get data from pynapple to NeMoS-ready format:
 #   - predictors and spikes must have same number of time points
@@ -684,6 +689,89 @@ fig.axes[0].legend()
 # approximately exponential. We already knew that! That's what it means to be a
 # LNP model of a single input. But it's nice to see it made explicit.
 #
+# ### Extending the model
+#
+# We can try extending the model in order to improve its performance. There are many
+# ways one can do this: the iterative refinement and improvement of your model is an
+# important part of the scientific process! In this tutorial, we'll discuss one such
+# extension, but you're encouraged to try others.
+#
+# Our model right now assumes that the neuron's spiking behavior is only driven by the
+# *instantaneous input current*. That is, we're saying that history doesn't matter. But
+# we know that neurons integrate information over time, so why don't we add extend our
+# model to reflect that?
+#
+# To do so, we will change our predictors, including variables that represent the
+# history of the input current as additional columns. First, we must decide the duration
+# of time that we think is relevant: does current passed to the cell 10 msec ago matter?
+# what about 100 msec? 1 sec? To start, we should use our a priori knowledge about the
+# system to determine a reasonable initial value. Later, we can examine the model
+# parameters and do formal model comparison in order to determine how much history is
+# necessary.
+#
+# For now, let's use a duration of 80 msec:
+
+current_history_duration_sec = 0.08
+# convert this from sec to bins
+current_history_duration = int(current_history_duration_sec / bin_size)
+
+# To construct our new predictors, we could simply take the current and shift it
+# incrementally. The value of predictor `binned_current` at time $t$ is the injected
+# current at time $t$; by shifting `binned_current` backwareds by 1, we are modeling the
+# effect of the current at time $t-1$ on the firing rate at time $t$, and so on for all
+# shifts $i$ up to `current_history_duration`:
+
+binned_current[1:]
+binned_current[2:]
+# etc
+
+# In general, however, this is not a good way to extend the model in the way discussed.
+# You will end end up with a very large number of predictive variables (one for every
+# bin shift!), which will make the model more sensitive to noise in the data.
+#
+# A better idea is to do some dimensionality reduction on these predictors, by
+# parametrizing them using **basis functions**. These will allow us to capture
+# interesting non-linear effects with a relatively low-dimensional parametrization that
+# preserves convexity. NeMoS has a whole library of basis objects available at
+# `nmo.basis`, and choosing which set of basis functions and their parameters, like
+# choosing the duration of the current history predictor, requires knowledge of your
+# problem, but can later be examined using model comparison tools.
+#
+# For history-type inputs like we're discussing, the raised cosine log-stretched basis
+# first described in Pillow et al., 2005 [^3] is a good fit. This basis set has the nice
+# property that their precision drops linearly with distance from event, which is a
+# makes sense for many history-related inputs in neuroscience: whether an input happened
+# 1 or 5 msec ago matters a lot, whereas whether an input happened 51 or 55 msec ago is
+# less important.
+
+workshop_utils.plotting.plot_basis(window_size_sec=.08)
+
+# [^3]: Pillow, J. W., Paninski, L., Uzzel, V. J., Simoncelli, E. P., & J.,
+# C. E. (2005). Prediction and decoding of retinal ganglion cell responses
+# with a probabilistic spiking model. Journal of Neuroscience, 25(47),
+# 11003–11013. http://dx.doi.org/10.1523/jneurosci.3305-05.2005
+#
+# NeMoS's `Basis` objects handle the construction and use of these basis functions. When
+# we instantiate this object, the only argument we need to specify is the number of
+# functions we want: with more basis functions, we'll be able to represent the effect of
+# the corresponding input with the higher precision, at the cost of adding additional
+# parameters.
+
+# a basis object can be instantiated in "conv" mode for convolving  the input.
+basis = nmo.basis.RaisedCosineBasisLog(
+    n_basis_funcs=8, mode="conv", window_size=current_history_duration,
+)
+
+# `basis.evaluate_on_grid` is a convenience method to view all basis functions
+# across their whole domain:
+time, basis_kernels = basis.evaluate_on_grid(current_history_duration)
+
+print(basis_kernels.shape)
+
+# time takes equi-spaced values between 0 and 1, we could multiply by the
+# duration of our window to scale it to seconds.
+time *= current_history_duration_sec
+
 # ### Finishing up
 #
 # There are a handful of other operations you might like to do with the GLM.
