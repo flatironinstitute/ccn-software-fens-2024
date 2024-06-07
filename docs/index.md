@@ -1,6 +1,6 @@
 ![image](assets/banner.jpg)
 
-# CCN software workshop at FENS 2024
+# Flatiron CCN workshop on neural data analysis
 
 WRITE INTRO TEXT HERE
 
