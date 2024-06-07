@@ -8,6 +8,7 @@ theme:
   features:
    - navigation.expand
    - navigation.top
+   - content.code.copy
   palette:
     primary: 'custom'                   # The primary color palette for the theme
   markdown_extensions:
