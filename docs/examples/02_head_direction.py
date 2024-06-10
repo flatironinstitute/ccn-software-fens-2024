@@ -157,261 +157,266 @@ plt.xlabel("Time (sec)")
 plt.ylabel("Counts")
 plt.tight_layout()
 
+# # %%
+# # #### Features Construction
+# # Let's fix the spike history window size that we will use as predictor.
+
+
+# # set the size of the spike history window in seconds
+# window_size_sec = 0.8
+
+# workshop_utils.plotting.plot_history_window(neuron_count, epoch_one_spk, window_size_sec)
+
+
+# # %%
+# # For each time point, we shift our window one bin at the time and vertically stack the spike count history in a matrix.
+# # Each row of the matrix will be used as the predictors for the rate in the next bin (red narrow rectangle in
+# # the figure).
+
+
+# workshop_utils.plotting.run_animation(neuron_count, epoch_one_spk.start[0])
+
+# # %%
+# # If $t$ is smaller than the window size, we won't have a full window of spike history for estimating the rate.
+# # One may think of padding the window (with zeros for example) but this may generate weird border artifacts.
+# # To avoid that, we can simply restrict our analysis to times $t$ larger than the window and NaN-pad earlier
+# # time-points;
+# #
+# # A fast way to compute this feature matrix is convolving the counts with the identity matrix.
+# # We can apply the convolution and NaN-padding in a single step using the
+# # [`nemos.utils.create_convolutional_predictor`](../../../reference/nemos/utils/#nemos.utils.create_convolutional_predictor)
+# # function.
+
+# # convert the prediction window to bins (by multiplying with the sampling rate)
+# window_size = int(window_size_sec * neuron_count.rate)
+
+# # convolve the counts with the identity matrix.
+# plt.close("all")
+# input_feature = nmo.convolve.create_convolutional_predictor(
+#     np.eye(window_size), neuron_count
+# )
+
+# # print the NaN indices along the time axis
+# print("NaN indices:\n", np.where(np.isnan(input_feature[:, 0]))[0])
+
+# # %%
+# # The binned counts originally have shape "number of samples", we should check that the
+# # dimension are matching our expectation
+
+# print(f"Time bins in counts: {neuron_count.shape[0]}")
+# print(f"Convolution window size in bins: {window_size}")
+# print(f"Feature shape: {input_feature.shape}")
+
+# # %%
+# #
+# # We can visualize the output for a few time bins
+
+
+# suptitle = "Input feature: Count History"
+# neuron_id = 0
+# workshop_utils.plotting.plot_features(input_feature, count.rate, suptitle)
+
+# # %%
+# # As you may see, the time axis is backward, this happens because convolution flips the time axis.
+# # This is equivalent, as we can interpret the result as how much a spike will affect the future rate.
+# # In the previous tutorial our feature was 1-dimensional (just the current), now
+# # instead the feature dimension is 80, because our bin size was 0.01 sec and the window size is 0.8 sec.
+# # We can learn these weights by maximum likelihood by fitting a GLM.
+
+# # %%
+# # #### Fitting the Model
+# #
+# # When working a real dataset, it is good practice to train your models on a chunk of the data and
+# # use the other chunk to assess the model performance. This process is known as "cross-validation".
+# # There is no unique strategy on how to cross-validate your model; What works best
+# # depends on the characteristic of your data (time series or independent samples,
+# # presence or absence of trials...), and that of your model. Here, for simplicity use the first
+# # half of the wake epochs for training and the second half for testing. This is a reasonable
+# # choice if the statistics of the neural activity does not change during the course of
+# # the recording. We will learn about better cross-validation strategies with other
+# # examples.
+
+# # construct the train and test epochs
+# duration = input_feature.time_support.tot_length("s")
+# start = input_feature.time_support["start"]
+# end = input_feature.time_support["end"]
+# first_half = nap.IntervalSet(start, start + duration / 2)
+# second_half = nap.IntervalSet(start + duration / 2, end)
+
+# # %%
+# # Fit the glm to the first half of the recording and visualize the ML weights.
+
+
+# # define the GLM object
+# model = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
+
+# # Fit over the training epochs
+# model.fit(
+#     input_feature.restrict(first_half),
+#     neuron_count.restrict(first_half)
+# )
+
+# # %%
+
+# plt.figure()
+# plt.title("Spike History Weights")
+# plt.plot(np.arange(window_size) / count.rate, np.squeeze(model.coef_), lw=2, label="GLM raw history 1st Half")
+# plt.axhline(0, color="k", lw=0.5)
+# plt.xlabel("Time From Spike (sec)")
+# plt.ylabel("Kernel")
+# plt.legend()
+
+# # %%
+# # The response in the previous figure seems noise added to a decay, therefore the response
+# # can be described with fewer degrees of freedom. In other words, it looks like we
+# # are using way too many weights to describe a simple response.
+# # If we are correct, what would happen if we re-fit the weights on the other half of the data?
+# # #### Inspecting the results
+
+# # fit on the test set
+
+# model_second_half = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
+# model_second_half.fit(
+#     input_feature.restrict(second_half),
+#     neuron_count.restrict(second_half)
+# )
+
+# plt.figure()
+# plt.title("Spike History Weights")
+# plt.plot(np.arange(window_size) / count.rate, np.squeeze(model.coef_),
+#          label="GLM raw history 1st Half", lw=2)
+# plt.plot(np.arange(window_size) / count.rate,  np.squeeze(model_second_half.coef_),
+#          color="orange", label="GLM raw history 2nd Half", lw=2)
+# plt.axhline(0, color="k", lw=0.5)
+# plt.xlabel("Time From Spike (sec)")
+# plt.ylabel("Kernel")
+# plt.legend()
+
+# # %%
+# # What can we conclude?
+# #
+# # The fast fluctuations are inconsistent across fits, indicating that
+# # they are probably capturing noise, a phenomenon known as over-fitting;
+# # On the other hand, the decaying trend is fairly consistent, even if
+# # our estimate is noisy. You can imagine how things could get
+# # worst if we needed a finer temporal resolution, such 1ms time bins
+# # (which would require 800 coefficients instead of 80).
+# # What can we do to mitigate over-fitting now?
+# #
+# # #### Reducing feature dimensionality
+# # One way to proceed is to find a lower-dimensional representation of the response
+# # by parametrizing the decay effect. For instance, we could try to model it
+# # with an exponentially decaying function $f(t) = \exp( - \alpha t)$, with
+# # $\alpha >0$ a positive scalar. This is not a bad idea, because we would greatly
+# # simplify the dimensionality our features (from 80 to 1). Unfortunately,
+# # there is no way to know a-priori what is a good parameterization. More
+# # importantly, not all the parametrizations guarantee a unique and stable solution
+# # to the maximum likelihood estimation of the coefficients (convexity).
+# #
+# # In the GLM framework, the main way to construct a lower dimensional parametrization
+# # while preserving convexity, is to use a set of basis functions.
+# # For history-type inputs, whether of the spiking history or of the current
+# # history, we'll use the raised cosine log-stretched basis first described in
+# # [Pillow et al., 2005](https://www.jneurosci.org/content/25/47/11003). This
+# # basis set has the nice property that their precision drops linearly with
+# # distance from event, which is a makes sense for many history-related inputs
+# # in neuroscience: whether an input happened 1 or 5 msec ago matters a lot,
+# # whereas whether an input happened 51 or 55 msec ago is less important.
+
+
+# workshop_utils.plotting.plot_basis()
+
+# # %%
+# # !!! info
+# #
+# #     We provide a handful of different choices for basis functions, and
+# #     selecting the proper basis function for your input is an important
+# #     analytical step. We will eventually provide guidance on this choice, but
+# #     for now we'll give you a decent choice.
+# #
+# # NeMoS includes `Basis` objects to handle the construction and use of these
+# # basis functions.
+# #
+# # When we instantiate this object, the only arguments we need to specify is the
+# # number of functions we want, the mode of operation of the basis (`"conv"`),
+# # and the window size for the convolution. With more basis functions, we'll be able to
+# # represent the effect of the corresponding input with the higher precision, at
+# # the cost of adding additional parameters.
+
+# # a basis object can be instantiated in "conv" mode for convolving  the input.
+# basis = nmo.basis.RaisedCosineBasisLog(
+#     n_basis_funcs=8, mode="conv", window_size=window_size
+# )
+
+# # `basis.evaluate_on_grid` is a convenience method to view all basis functions
+# # across their whole domain:
+# time, basis_kernels = basis.evaluate_on_grid(window_size)
+
+# print(basis_kernels.shape)
+
+# # time takes equi-spaced values between 0 and 1, we could multiply by the
+# # duration of our window to scale it to seconds.
+# time *= window_size_sec
+
+# # %%
+# # To appreciate why the raised-cosine basis can approximate well our response
+# # we can learn a "good" set of weight for the basis element such that
+# # a weighted sum of the basis approximates the GLM weights for the count history.
+# # One way to do so is by minimizing the least-squares.
+
+
+# # compute the least-squares weights
+# lsq_coef, _, _, _ = np.linalg.lstsq(basis_kernels, np.squeeze(model.coef_), rcond=-1)
+
+# # plot the basis and the approximation
+# workshop_utils.plotting.plot_weighted_sum_basis(time, model.coef_, basis_kernels, lsq_coef)
+
+# # %%
+# #
+# # The first plot is the response of each of the 8 basis functions to a single
+# # pulse. This is known as the impulse response function, and is a useful way to
+# # characterize linear systems like our basis objects. The second plot are is a
+# # bar plot representing the least-square coefficients. The third one are the
+# # impulse responses scaled by the weights. The last plot shows the sum of the
+# # scaled response overlapped to the original spike count history weights.
+# #
+# # Our predictor previously was huge: every possible 80 time point chunk of the
+# # data, for 1440000 total numbers. By using this basis set we can instead reduce
+# # the predictor to 8 numbers for every 80 time point window for 144000 total
+# # numbers. Basically an order of magnitude less. With 1ms bins we would have
+# # achieved 2 order of magnitude reduction in input size. This is a huge benefit
+# # in terms of memory allocation and, computing time. As an additional benefit,
+# # we will reduce over-fitting.
+# #
+# # Let's see our basis in action. We can "compress" spike history feature by convolving the basis
+# # with the counts (without creating the large spike history feature matrix).
+# # This can be performed in NeMoS by calling the "compute_features" method of basis.
+
+
+# # equivalent to
+# # `nmo.convolve.create_convolutional_predictor(basis_kernels, neuron_count)`
+# conv_spk = basis.compute_features(neuron_count)
+
+# print(f"Raw count history as feature: {input_feature.shape}")
+# print(f"Compressed count history as feature: {conv_spk.shape}")
+
+# # Visualize the convolution results
+# epoch_one_spk = nap.IntervalSet(8917.5, 8918.5)
+# epoch_multi_spk = nap.IntervalSet(8979.2, 8980.2)
+
+# workshop_utils.plotting.plot_convolved_counts(neuron_count, conv_spk, epoch_one_spk, epoch_multi_spk)
+
+# # find interval with two spikes to show the accumulation, in a second row
+
+# # %%
+# # Now that we have our "compressed" history feature matrix, we can fit the ML parameters for a GLM.
+
 # %%
-# #### Features Construction
-# Let's fix the spike history window size that we will use as predictor.
-
-
-# set the size of the spike history window in seconds
-window_size_sec = 0.8
-
-workshop_utils.plotting.plot_history_window(neuron_count, epoch_one_spk, window_size_sec)
-
-
-# %%
-# For each time point, we shift our window one bin at the time and vertically stack the spike count history in a matrix.
-# Each row of the matrix will be used as the predictors for the rate in the next bin (red narrow rectangle in
-# the figure).
-
-
-workshop_utils.plotting.run_animation(neuron_count, epoch_one_spk.start[0])
-
-# %%
-# If $t$ is smaller than the window size, we won't have a full window of spike history for estimating the rate.
-# One may think of padding the window (with zeros for example) but this may generate weird border artifacts.
-# To avoid that, we can simply restrict our analysis to times $t$ larger than the window and NaN-pad earlier
-# time-points;
 #
-# A fast way to compute this feature matrix is convolving the counts with the identity matrix.
-# We can apply the convolution and NaN-padding in a single step using the
-# [`nemos.utils.create_convolutional_predictor`](../../../reference/nemos/utils/#nemos.utils.create_convolutional_predictor)
-# function.
-
-# convert the prediction window to bins (by multiplying with the sampling rate)
-window_size = int(window_size_sec * neuron_count.rate)
-
-# convolve the counts with the identity matrix.
-plt.close("all")
-input_feature = nmo.convolve.create_convolutional_predictor(
-    np.eye(window_size), neuron_count
-)
-
-# print the NaN indices along the time axis
-print("NaN indices:\n", np.where(np.isnan(input_feature[:, 0]))[0])
-
-# %%
-# The binned counts originally have shape "number of samples", we should check that the
-# dimension are matching our expectation
-
-print(f"Time bins in counts: {neuron_count.shape[0]}")
-print(f"Convolution window size in bins: {window_size}")
-print(f"Feature shape: {input_feature.shape}")
-
-# %%
+# !!! warning
+#     We'll need a little bit of work here constructing the feature matrix, but I think it
+#     can be moved through pretty quickly, given what I've covered in the previous section
 #
-# We can visualize the output for a few time bins
-
-
-suptitle = "Input feature: Count History"
-neuron_id = 0
-workshop_utils.plotting.plot_features(input_feature, count.rate, suptitle)
-
-# %%
-# As you may see, the time axis is backward, this happens because convolution flips the time axis.
-# This is equivalent, as we can interpret the result as how much a spike will affect the future rate.
-# In the previous tutorial our feature was 1-dimensional (just the current), now
-# instead the feature dimension is 80, because our bin size was 0.01 sec and the window size is 0.8 sec.
-# We can learn these weights by maximum likelihood by fitting a GLM.
-
-# %%
-# #### Fitting the Model
-#
-# When working a real dataset, it is good practice to train your models on a chunk of the data and
-# use the other chunk to assess the model performance. This process is known as "cross-validation".
-# There is no unique strategy on how to cross-validate your model; What works best
-# depends on the characteristic of your data (time series or independent samples,
-# presence or absence of trials...), and that of your model. Here, for simplicity use the first
-# half of the wake epochs for training and the second half for testing. This is a reasonable
-# choice if the statistics of the neural activity does not change during the course of
-# the recording. We will learn about better cross-validation strategies with other
-# examples.
-
-# construct the train and test epochs
-duration = input_feature.time_support.tot_length("s")
-start = input_feature.time_support["start"]
-end = input_feature.time_support["end"]
-first_half = nap.IntervalSet(start, start + duration / 2)
-second_half = nap.IntervalSet(start + duration / 2, end)
-
-# %%
-# Fit the glm to the first half of the recording and visualize the ML weights.
-
-
-# define the GLM object
-model = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
-
-# Fit over the training epochs
-model.fit(
-    input_feature.restrict(first_half),
-    neuron_count.restrict(first_half)
-)
-
-# %%
-
-plt.figure()
-plt.title("Spike History Weights")
-plt.plot(np.arange(window_size) / count.rate, np.squeeze(model.coef_), lw=2, label="GLM raw history 1st Half")
-plt.axhline(0, color="k", lw=0.5)
-plt.xlabel("Time From Spike (sec)")
-plt.ylabel("Kernel")
-plt.legend()
-
-# %%
-# The response in the previous figure seems noise added to a decay, therefore the response
-# can be described with fewer degrees of freedom. In other words, it looks like we
-# are using way too many weights to describe a simple response.
-# If we are correct, what would happen if we re-fit the weights on the other half of the data?
-# #### Inspecting the results
-
-# fit on the test set
-
-model_second_half = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
-model_second_half.fit(
-    input_feature.restrict(second_half),
-    neuron_count.restrict(second_half)
-)
-
-plt.figure()
-plt.title("Spike History Weights")
-plt.plot(np.arange(window_size) / count.rate, np.squeeze(model.coef_),
-         label="GLM raw history 1st Half", lw=2)
-plt.plot(np.arange(window_size) / count.rate,  np.squeeze(model_second_half.coef_),
-         color="orange", label="GLM raw history 2nd Half", lw=2)
-plt.axhline(0, color="k", lw=0.5)
-plt.xlabel("Time From Spike (sec)")
-plt.ylabel("Kernel")
-plt.legend()
-
-# %%
-# What can we conclude?
-#
-# The fast fluctuations are inconsistent across fits, indicating that
-# they are probably capturing noise, a phenomenon known as over-fitting;
-# On the other hand, the decaying trend is fairly consistent, even if
-# our estimate is noisy. You can imagine how things could get
-# worst if we needed a finer temporal resolution, such 1ms time bins
-# (which would require 800 coefficients instead of 80).
-# What can we do to mitigate over-fitting now?
-#
-# #### Reducing feature dimensionality
-# One way to proceed is to find a lower-dimensional representation of the response
-# by parametrizing the decay effect. For instance, we could try to model it
-# with an exponentially decaying function $f(t) = \exp( - \alpha t)$, with
-# $\alpha >0$ a positive scalar. This is not a bad idea, because we would greatly
-# simplify the dimensionality our features (from 80 to 1). Unfortunately,
-# there is no way to know a-priori what is a good parameterization. More
-# importantly, not all the parametrizations guarantee a unique and stable solution
-# to the maximum likelihood estimation of the coefficients (convexity).
-#
-# In the GLM framework, the main way to construct a lower dimensional parametrization
-# while preserving convexity, is to use a set of basis functions.
-# For history-type inputs, whether of the spiking history or of the current
-# history, we'll use the raised cosine log-stretched basis first described in
-# [Pillow et al., 2005](https://www.jneurosci.org/content/25/47/11003). This
-# basis set has the nice property that their precision drops linearly with
-# distance from event, which is a makes sense for many history-related inputs
-# in neuroscience: whether an input happened 1 or 5 msec ago matters a lot,
-# whereas whether an input happened 51 or 55 msec ago is less important.
-
-
-workshop_utils.plotting.plot_basis()
-
-# %%
-# !!! info
-#
-#     We provide a handful of different choices for basis functions, and
-#     selecting the proper basis function for your input is an important
-#     analytical step. We will eventually provide guidance on this choice, but
-#     for now we'll give you a decent choice.
-#
-# NeMoS includes `Basis` objects to handle the construction and use of these
-# basis functions.
-#
-# When we instantiate this object, the only arguments we need to specify is the
-# number of functions we want, the mode of operation of the basis (`"conv"`),
-# and the window size for the convolution. With more basis functions, we'll be able to
-# represent the effect of the corresponding input with the higher precision, at
-# the cost of adding additional parameters.
-
-# a basis object can be instantiated in "conv" mode for convolving  the input.
-basis = nmo.basis.RaisedCosineBasisLog(
-    n_basis_funcs=8, mode="conv", window_size=window_size
-)
-
-# `basis.evaluate_on_grid` is a convenience method to view all basis functions
-# across their whole domain:
-time, basis_kernels = basis.evaluate_on_grid(window_size)
-
-print(basis_kernels.shape)
-
-# time takes equi-spaced values between 0 and 1, we could multiply by the
-# duration of our window to scale it to seconds.
-time *= window_size_sec
-
-# %%
-# To appreciate why the raised-cosine basis can approximate well our response
-# we can learn a "good" set of weight for the basis element such that
-# a weighted sum of the basis approximates the GLM weights for the count history.
-# One way to do so is by minimizing the least-squares.
-
-
-# compute the least-squares weights
-lsq_coef, _, _, _ = np.linalg.lstsq(basis_kernels, np.squeeze(model.coef_), rcond=-1)
-
-# plot the basis and the approximation
-workshop_utils.plotting.plot_weighted_sum_basis(time, model.coef_, basis_kernels, lsq_coef)
-
-# %%
-#
-# The first plot is the response of each of the 8 basis functions to a single
-# pulse. This is known as the impulse response function, and is a useful way to
-# characterize linear systems like our basis objects. The second plot are is a
-# bar plot representing the least-square coefficients. The third one are the
-# impulse responses scaled by the weights. The last plot shows the sum of the
-# scaled response overlapped to the original spike count history weights.
-#
-# Our predictor previously was huge: every possible 80 time point chunk of the
-# data, for 1440000 total numbers. By using this basis set we can instead reduce
-# the predictor to 8 numbers for every 80 time point window for 144000 total
-# numbers. Basically an order of magnitude less. With 1ms bins we would have
-# achieved 2 order of magnitude reduction in input size. This is a huge benefit
-# in terms of memory allocation and, computing time. As an additional benefit,
-# we will reduce over-fitting.
-#
-# Let's see our basis in action. We can "compress" spike history feature by convolving the basis
-# with the counts (without creating the large spike history feature matrix).
-# This can be performed in NeMoS by calling the "compute_features" method of basis.
-
-
-# equivalent to
-# `nmo.convolve.create_convolutional_predictor(basis_kernels, neuron_count)`
-conv_spk = basis.compute_features(neuron_count)
-
-print(f"Raw count history as feature: {input_feature.shape}")
-print(f"Compressed count history as feature: {conv_spk.shape}")
-
-# Visualize the convolution results
-epoch_one_spk = nap.IntervalSet(8917.5, 8918.5)
-epoch_multi_spk = nap.IntervalSet(8979.2, 8980.2)
-
-workshop_utils.plotting.plot_convolved_counts(neuron_count, conv_spk, epoch_one_spk, epoch_multi_spk)
-
-# find interval with two spikes to show the accumulation, in a second row
-
-# %%
-# Now that we have our "compressed" history feature matrix, we can fit the ML parameters for a GLM.
-
-# %%
 # #### Fit and compare the models
 
 # use restrict on interval set training

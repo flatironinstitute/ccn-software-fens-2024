@@ -58,7 +58,7 @@ plt.style.use(workshop_utils.STYLE_FILE)
 
 # Set the default precision to float64, which is generally a good idea for
 # optimization purposes.
-jax.config.update("jax_enable_x64", True)
+# jax.config.update("jax_enable_x64", True)
 
 # %%
 # ## Data Streaming
@@ -715,6 +715,7 @@ current_history_duration_sec = 0.08
 # convert this from sec to bins
 current_history_duration = int(current_history_duration_sec / bin_size)
 
+# %%
 # To construct our new predictors, we could simply take the current and shift it
 # incrementally. The value of predictor `binned_current` at time $t$ is the injected
 # current at time $t$; by shifting `binned_current` backwareds by 1, we are modeling the
@@ -725,6 +726,7 @@ binned_current[1:]
 binned_current[2:]
 # etc
 
+# %%
 # In general, however, this is not a good way to extend the model in the way discussed.
 # You will end end up with a very large number of predictive variables (one for every
 # bin shift!), which will make the model more sensitive to noise in the data.
@@ -746,32 +748,101 @@ binned_current[2:]
 
 workshop_utils.plotting.plot_basis(window_size_sec=.08)
 
+# %%
 # [^3]: Pillow, J. W., Paninski, L., Uzzel, V. J., Simoncelli, E. P., & J.,
 # C. E. (2005). Prediction and decoding of retinal ganglion cell responses
 # with a probabilistic spiking model. Journal of Neuroscience, 25(47),
 # 11003–11013. http://dx.doi.org/10.1523/jneurosci.3305-05.2005
 #
 # NeMoS's `Basis` objects handle the construction and use of these basis functions. When
-# we instantiate this object, the only argument we need to specify is the number of
+# we instantiate this object, the main argument we need to specify is the number of
 # functions we want: with more basis functions, we'll be able to represent the effect of
 # the corresponding input with the higher precision, at the cost of adding additional
 # parameters.
+#
+# We also need to specify whether we want to use the basis in convolutional (`"conv"`)
+# or evaluation (`"eval"`) mode. This is determined by the type of feature we wish to
+# represent with the basis:
+#
+# - Evaluation mode transforms the input through the non-linear function defined by the
+#   basis. This can be used to represent features such as spatial location and head
+#   direction.
+#
+# - Convolution mode applies a convolution of the input data to the bank of filters
+#   defined by the basis, and is particularly sueful when analyzing data with inherent
+#   temporal dependencies, such as spike history or the history of input current in this
+#   example. In convolution mode, we must additionally specify the `window_size`, the
+#   length of the filters in bins.
+#
+# !!! warning
+#     How is this description? any other examples?
 
-# a basis object can be instantiated in "conv" mode for convolving  the input.
 basis = nmo.basis.RaisedCosineBasisLog(
     n_basis_funcs=8, mode="conv", window_size=current_history_duration,
 )
 
-# `basis.evaluate_on_grid` is a convenience method to view all basis functions
-# across their whole domain:
-time, basis_kernels = basis.evaluate_on_grid(current_history_duration)
+# %%
+# !!! note "Visualizing `Basis` objects"
+#
+#     NeMoS provides some convenience functions for quickly visualizing the basis, in
+#     order to create plots like the type seen above.
+#
+#     ```python
+#     # basis_kernels is an array of shape (current_history_duration, n_basis_funcs)
+#     # while time is an array of shape (current_history_duration, )
+#     time, basis_kernels = basis.evaluate_on_grid(current_history_duration)
+#     # convert time to sec
+#     time *= current_history_duration_sec
+#     plt.plot(time, basis_kernels)
+#     ```
+#
+# With this basis in hand, we can compress our input features:
 
-print(basis_kernels.shape)
+# under the hood, this convolves the filter bank visualized above with our input
+current_history = basis.compute_features(binned_current)
+print(current_history.shape)
 
-# time takes equi-spaced values between 0 and 1, we could multiply by the
-# duration of our window to scale it to seconds.
-time *= current_history_duration_sec
+# %%
+#
+# We can see that our design matrix is now 28020 time points by 8 features. If we had
+# used the raw shifted data as the features, like we started to do above, we'd have a
+# design matrix with 80 features, so we've ended up with an order of magnitude fewer
+# features!
+#
+# What do these features look like?
 
+# in this plot, we're normalizing the amplitudes to make the comparison easier --
+# the amplitude of these features will be fit by the model, so their un-scaled
+# amplitudes is not informative
+workshop_utils.plotting.plot_current_history_features(binned_current, current_history, basis,
+                                                      current_history_duration_sec)
+
+# %%
+#
+# On the top row, we're visualizing the basis functions, as above. On the bottom row,
+# we're showing the input current, as a black dashed line, and corresponding features
+# over a small window of time, just as the current is being turned on. These features
+# are the result of a convolution between the basis function on the top row with the
+# black dashed line shown below. As the basis functions get progressively wider and
+# delayed from the event start, we can thus think of the features as weighted averages
+# that get progressively later and smoother. Let's step through that a bit more slowly.
+#
+# In the leftmost plot, we can see that the first feature almost perfectly tracks the
+# input. Looking at the basis function above, that makes sense: it reaches its max at 0
+# and quickly decays. This feature is thus a very slightly smoothed version of the
+# instantaneous current feature we were using before. In the middle plot, we can see
+# that the last feature has a fairly long lag compared to the current, and is a good
+# deal smoother. Looking at the rightmost plot, we can see that the other features vary
+# between these two extremes, getting smoother and more delayed.
+#
+# These are the elements of our feature matrix: representations of not just the
+# instantaneous current, but also the current history, with precision decreasing as the
+# lag between the predictor and current increases. Let's see what this looks like when
+# we go to fit the model!
+#
+#
+
+# %%
 # ### Finishing up
 #
 # There are a handful of other operations you might like to do with the GLM.
@@ -887,7 +958,7 @@ model.score(predictor, count, score_type='pseudo-r2-Cohen')
 # return to this example after you've learned about `Basis` objects and how to
 # use them.
 #
-# ## Citation {.keep-text}
+# ## Data citation {.keep-text}
 #
 # The data used in this tutorial is from the Allen Brain Map, with the
 # [following

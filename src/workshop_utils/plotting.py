@@ -832,3 +832,28 @@ def plot_basis(n_basis_funcs=8, window_size_sec=0.8):
     plt.plot(time, basis_kernels)
     plt.xlabel("time (sec)")
     return fig
+
+
+def plot_current_history_features(current, features, basis, window_duration_sec,
+                                  interval=nap.IntervalSet(462.77, 463)):
+    fig, axes = plt.subplots(2, 3, sharey='row',  figsize=(8, 3.5))
+    time, basis = basis.evaluate_on_grid(basis.window_size)
+    time *= window_duration_sec
+    current = current.restrict(interval)
+    features = features.restrict(interval) / features.restrict(interval).max(0) * current.max()
+    for ax in axes[1, :]:
+        ax.plot(current, 'k--')
+        ax.set_xlabel("Time (sec")
+    axes[0, 0].plot(time, basis, alpha=.1)
+    axes[0, 0].plot(time, basis[:, 0], 'C0', alpha=1)
+    axes[0, 0].set_ylabel("Amplitude (A.U.)")
+    axes[1, 0].plot(features[:,0])
+    axes[1, 0].set_ylabel("Current")
+    axes[0, 0].set_title("Feature 1")
+    axes[1, 1].plot(features[:,-1], 'grey')
+    axes[0, 1].plot(time, basis, alpha=.1)
+    axes[0, 1].plot(time, basis[:, -1], 'grey', alpha=1)
+    axes[0, 1].set_title("Feature 8")
+    axes[0, 2].plot(time, basis)
+    axes[1, 2].plot(features)
+    axes[0, 2].set_title("All features")
