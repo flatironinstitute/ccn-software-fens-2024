@@ -1,4 +1,4 @@
-site_name: "CCN software workshop, FENS 2024"
+site_name: "Flatiron CCN workshop on neural data analysis, FENS 2024"
 repo_url: https://github.com/flatironinstitute/ccn-software-fens-2024
 
 theme:
@@ -8,6 +8,7 @@ theme:
   features:
    - navigation.expand
    - navigation.top
+   - content.code.copy
   palette:
     primary: 'custom'                   # The primary color palette for the theme
   markdown_extensions:
