@@ -73,6 +73,9 @@ def convert(path: str, follow_strip_classes=True):
         if block_type == 'code':
             if not any(['.strip-code' in h[1] for h in most_recent_header_chain]) or not follow_strip_classes:
                 output_blocks.append('\n# %%\n' + block_txt)
+            # don't duplicate these lines
+            elif '# enter code here' not in output_blocks[-1]:
+                output_blocks.append('\n# enter code here\n')
     return output_blocks
 
 
