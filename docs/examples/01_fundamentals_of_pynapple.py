@@ -45,7 +45,7 @@ starts_1 = np.array([10000, 60000, 90000]) # starts of an epoch in `ms`
 ends_1 = np.array([20000, 80000, 95000]) # ends in `ms`
 
 # %% 
-# ## Instantiate pynapple objects {.strip-code}{.keep-text}
+# ## Instantiate pynapple objects {.strip-code,.keep-text}
 #
 # This is a lot of variables to carry around. pynapple can help reduce the size of the workspace. Here we will instantiate all the different pynapple objects with the variables created above.
 #
@@ -98,7 +98,7 @@ tsgroup = nap.TsGroup({0:ts1, 1:ts2, 2:ts3})
 print(tsgroup)
 
 # %%
-# ## Interaction between pynapple objects {.strip-code}{.keep-text}
+# ## Interaction between pynapple objects {.strip-code,.keep-text}
 #
 # We reduced 12 variables in our workspace to 5 using pynapple. Now we can see how the objects interact.
 #
@@ -136,7 +136,7 @@ print(tsd1)
 print(tsd1.time_support)
 
 # %%
-# ## Numpy & pynapple {.strip-code}{.keep-text}
+# ## Numpy & pynapple {.strip-code,.keep-text}
 #
 # Pynapple objects behaves very similarly like numpy array. They can be sliced withe the following syntax :
 # 
@@ -160,7 +160,7 @@ print(np.mean(tsd2, 1))
 # Notice how the output in the second case is still a pynapple object.
 # In most cases, applying a numpy function will return a pynapple object if the time index is preserved.
 #
-# ## Slicing pynapple objects {.strip-code}{.keep-text}
+# ## Slicing pynapple objects {.strip-code,.keep-text}
 #
 # Multiple methods exists to slice pynapple object. This parts reviews them.
 #
@@ -176,7 +176,7 @@ print(ep[[0,2]])
 print(tsd3.get(50.1))
 
 # %%
-# ## `TsGroup` manipulation {.strip-code}{.keep-text}
+# ## `TsGroup` manipulation {.strip-code,.keep-text}
 #
 # `TsGroup` is under the hood a python dictionnary but the capabilities have been extented.
 # **Question:** Can you run the following command `tsgroup['planet'] = ['mars', 'venus', 'saturn']`
@@ -203,7 +203,7 @@ tsgroup[tsgroup.rate < 1.0]
 
 
 # %%
-# ## Core functions of pynapple {.strip-code}{.keep-text}
+# ## Core functions of pynapple {.strip-code,.keep-text}
 #
 # This part focuses on the most important core functions of pynapple. 
 #
