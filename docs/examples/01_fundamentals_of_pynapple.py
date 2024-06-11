@@ -5,16 +5,19 @@
 
 - Instantiate the pynapple objects
 - Make the pynapple objects interact
+- Use numpy with pynapple
+- Slicing pynapple objects
 - Learn the core functions of pynapple
 
 
 Let's start by importing the pynapple package and matplotlib to see if everything is correctly installed. 
 If an import fails, you can do `!pip install pynapple matplotlib` in a cell to fix it.
 """
-
+# %%
 import pynapple as nap
 import matplotlib.pyplot as plt
 import numpy as np
+
 
 # %%
 # For this notebook we will work with fake data. The following cells generate a set of variables that we will use to create the different pynapple objects.
@@ -30,79 +33,132 @@ var3 = np.random.randn(1000, 4, 5) # Variable 3
 tsp3 = np.arange(0, 100, 0.1) # The timesteps of variable 3
 
 random_times_1 = np.array([3.14, 37.0, 42.0])
-random_times_2 = np.array([10.0, 30, 50, 70, 90])
-random_times_3 = np.sort(np.random.uniform(0, 100, 1000))
+random_times_2 = np.array([10.0, 30, 50, 70])
+random_times_3 = np.sort(np.random.uniform(10, 80, 100))
 
-starts_1 = np.array([10, 60, 90])
-ends_1 = np.array([20, 80, 95])
+starts_1 = np.array([10000, 60000, 90000]) # starts of an epoch in `ms`
+ends_1 = np.array([20000, 80000, 95000]) # ends in `ms`
 
 # %%
+# ## Instantiate pynapple objects {.keep-text}
+#
 # This is a lot of variables to carry around. pynapple can help reduce the size of the workspace. Here we will instantiate all the different pynapple objects with the variables created above.
 #
 # Let's start with the simple ones. 
 #
-# **Question:** Can you instantiate the right pynapple objects for `var1`, `var2` and `var3`? Objects should be named respectively `tsd1`, `tsd2` and `tsd3`.
+# **Question:** Can you instantiate the right pynapple objects for `var1`, `var2` and `var3`? Objects should be named respectively `tsd1`, `tsd2` and `tsd3`. Don't forget the column name for `var2`.
 
 tsd1 = nap.Tsd(t=tsp1, d=var1)
-tsd2 = nap.TsdFrame(t=tsp2, d=var2)
+tsd2 = nap.TsdFrame(t=tsp2, d=var2, columns = col2)
 tsd3 = nap.TsdTensor(t=tsp3, d=var3)
 
 # %%
-# **Question:** Can you print them one by one?
+# **Question:** Can you print `tsd1`?
 
 print(tsd1)
 
 # %%
-# """# Introduction to time series objects
+# **Question:** Can you print `tsd2`?
+print(tsd2)
 
-# The cell below creates artificial data sampled every 1 second. In this experiment, we start by collecting one data stream. Here *t* and *d* are the timestamps and data, respectively.
-# """
+# %%
+# **Question:** Can you print `tsd3`?
+print(tsd3)
 
-# import numpy as np
+# %%
+# **Question:** Can you create an `IntervalSet` called `ep` out of `starts_1` and `ends_1` and print it? Be careful, times given above are in `ms`.
 
-# rng = np.random.default_rng(seed=42) #the answer to the ultimate question of life, the universe, and everything
+ep = nap.IntervalSet(start=starts_1, end=ends_1, time_units='ms')
+print(ep)
 
-# t = np.arange(0, 1000)
+# %%
+# The experiment generated a set of timestamps from 3 different channels.
+#  
+# **Question:** Can you instantiate the corresponding pynapple object (`ts1`, `ts2`, `ts3`) for each one of them?
 
-# d = np.random.randn(1000, 5, 5)
-# d[:,0,0] += np.cos(t*0.05)
+ts1 = nap.Ts(t=random_times_1)
+ts2 = nap.Ts(t=random_times_2)
+ts3 = nap.Ts(t=random_times_3)
 
-# """
+# %%
+# This is a lot of timestamps to carry around as well.
+#
+# **Question:** Can you instantiate the right pynapple object (call it `tsgroup`) to group them together?
 
-# ---
+tsgroup = nap.TsGroup({0:ts1, 1:ts2, 2:ts3})
 
-# **Question 1** : Can you convert the data to the right pynapple object?"""
+# %%
+# **Question:** ... and print it?
 
-# imqging = nap.TsdTensor(t=t, d=d)
+print(tsgroup)
 
-# """**Question 2:** Can you print your object to see its dimensions?"""
+# %%
+# ## Interaction between pynapple objects {.keep-text}
+#
+# We reduced 12 variables in our workspace to 5 using pynapple. Now we can see how the objects interact.
+#
+# **Question:** Can you print the `time_support` of `TsGroup`?
 
-# print(imqging)
+print(tsgroup.time_support)
 
-# """**Question 3**: If your datastream is a movie, can you extract the time series of the pixel at coordinate (0, 0)?"""
+# %%
+# The experiment ran from 0 to 100 seconds and as you can see, the `TsGroup` object shows the rate. But the rate is not accurate as it was computed over the default `time_support`.
+#
+# **Question:** can you recreate the `tsgroup` object passing the right `time_support` during initialisation?
 
-# imqging[:,0,0]
+tsgroup = nap.TsGroup({0:ts1, 1:tsd2, 2:ts3}, time_support = nap.IntervalSet(0, 100))
 
-# """**Question 4**: We are interested in only the first 100 seconds and last 100 seconds of the recording. Can you restrict the first data stream to those epochs only? Don't forget to visualize the output of your operation."""
+# %%
+# **Question:** Can ou print the `time_support` and `rate` to see how they changed?
 
-# ep = nap.IntervalSet(start=[0, 900], end=[100, 1000])
-# print(ep)
+print(tsgroup.time_support)
+print(tsgroup.rate)
 
-# imaging_res = imqging.restrict(ep)
-# print(imaging_res)
+# %%
+# Now you realized the variable `tsd1` has some noise. The good signal is between 10 and 30 seconds and  50 and 100. 
+# 
+# **Question:** Can you create an `IntervalSet` object called `ep` and use it to restrict the variable `tsd1`?
 
-# print(imqging.time_support)
-# print(imaging_res.time_support)
+ep = nap.IntervalSet(start=[10, 50], end=[30, 100])
 
-# """**Question 5:** Can you average all the pixels only from those two epochs?"""
+tsd1 = tsd1.restrict(ep)
 
-# np.mean(imaging_res, (1,2))
+# %%
+# You can print `tsd1` to check that the timestamps are in fact within `ep`.
+# You can also check the `time_support` of `tsd1` to see that it has been updated.
+#
+print(tsd1)
+print(tsd1.time_support)
 
-# """**Question 6**: Can you average along the time axis during the same two epochs?"""
+# %%
+# ## Numpy & pynapple
+#
+# Pynapple objects behaves very similarly like numpy array. They can be sliced withe the following syntax :
+# 
+#   `tsd[0:10] # First 10 elements`
+#
+# Arithmetical operations are available as well :
+# 
+#   `tsd = tsd + 1`
+#
+# Finally numpy functions works directly. Let's imagine `tsd3` is a movie with frame size (4,5).
+# **Question:** Can you compute the average frame along the time axis using `np.mean` and print the result?
 
-# np.mean(imaging_res, 0)
+print(np.mean(tsd3, 0))
 
-# """---
+# %%
+# **Question:**: can you compute the average of `tsd2` along the column axis and print it?
+
+print(np.mean(tsd2, 1))
+
+# %%
+# Notice how the output in the second case is still a pynapple object.
+# In most cases, applying a numpy function will return a pynapple object if the time index is preserved.
+#
+# ## Slicing pynapple objects {.keep-text}
+
+#Inteval Set
+# TsGroup
 
 # # Using Ts and TsGroup
 
@@ -146,3 +202,5 @@ print(tsd1)
 # In this next experiment, we are recording a feature sampled at 100 Hz and one neuron.
 # """
 
+
+# %%
