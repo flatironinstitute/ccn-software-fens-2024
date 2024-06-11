@@ -484,6 +484,7 @@ def plot_features(
     fig = plt.figure(figsize=(8, 8))
     plt.suptitle(suptitle)
     time = np.arange(0, window_size) / sampling_rate
+    input_feature = input_feature.dropna()
     for k in range(n_rows):
         ax = plt.subplot(n_rows, 1, k + 1)
         plt.step(time, input_feature[k], where="post")
@@ -658,7 +659,7 @@ class PlotSlidingWindow():
 
     @staticmethod
     def set_lines_visible(line_tree, visible: bool):
-        jax.tree_map(lambda line: line.set_visible(visible), line_tree)
+        jax.tree_util.tree_map(lambda line: line.set_visible(visible), line_tree)
 
     def run(self):
         anim = FuncAnimation(self.fig, self.update_fig, self.n_shift, interval=self.interval, repeat=True)
@@ -815,7 +816,7 @@ def plot_convolved_counts(counts, conv_spk, *epochs, figsize=(6.5, 4.5)):
 
 
 def plot_rates_and_smoothed_counts(counts, rate_dict,
-                                   start=8819.4, end=8821, smooth_std=5, smooth_ws=100):
+                                   start=8819.4, end=8821, smooth_std=0.05, smooth_ws_scale=20):
     ep = nap.IntervalSet(start=start, end=end)
     fig = plt.figure()
     for key in  rate_dict:
@@ -823,7 +824,7 @@ def plot_rates_and_smoothed_counts(counts, rate_dict,
 
     idx_spikes = np.where(counts.restrict(ep).d > 0)[0]
     plt.vlines(counts.restrict(ep).t[idx_spikes], -8, -1, color="k")
-    plt.plot(counts.smooth(smooth_std, smooth_ws).restrict(ep) * counts.rate, color="k", label="Smoothed spikes")
+    plt.plot(counts.smooth(smooth_std, size_factor=smooth_ws_scale).restrict(ep) * counts.rate, color="k", label="Smoothed spikes")
     plt.axhline(0, color="k")
     plt.xlabel("Time (sec)")
     plt.ylabel("Firing Rate (Hz)")
