@@ -14,9 +14,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pynapple as nap
+import warnings
 import workshop_utils
 
 import nemos as nmo
+
+warnings.filterwarnings("ignore")
 
 # configure pynapple to ignore conversion warning
 nap.nap_config.suppress_conversion_warnings = True
@@ -164,7 +167,7 @@ count = nap.TsdFrame(
 # This can be quantified with a GLM if we use the recent population spike history to predict the current time step.
 # ### Self-Connected Single Neuron
 # To simplify our life, let's see first how we can model spike history effects in a single neuron.
-# Let's follow the simplest approach at first, which is to
+# We can follow the simplest approach at first, which is to
 # use counts in fixed length window $i$, $y_{t-i}, \dots, y_{t-1}$ to predict the next
 # count $y_{t}$.
 #
@@ -180,25 +183,19 @@ neuron_count = count[:, 0]
 epoch_one_spk = nap.IntervalSet(
     start=count.time_support.start[0], end=count.time_support.start[0] + 1.2
 )
-plt.figure(figsize=(8, 3.5))
-plt.step(
-    neuron_count.restrict(epoch_one_spk).t, neuron_count.restrict(epoch_one_spk).d, where="post"
-)
-plt.title("Spike Count Time Series")
-plt.xlabel("Time (sec)")
-plt.ylabel("Counts")
-plt.tight_layout()
+
+# set the size of the spike history window in seconds
+window_size_sec = 0.8
+
+workshop_utils.plotting.plot_history_window(neuron_count, epoch_one_spk, window_size_sec)
 
 # %%
-# The feature matrix is obtained by shift the prediction window forward in time and vertically stack
+# The feature matrix is obtained by shifting the prediction window forward in time and stacking vertically
 # the result in an array of shape `(n_shift, window_size)`.
 # A fast wat to do so is convolving the counts with the identity matrix.
 # <div class="notes">
 # - Form a predictor matrix by vertically stacking all the windows (you can use a convolution).
 # </div>
-
-# define a window size
-window_size_sec = 0.8
 
 # convert the prediction window to bins (by multiplying with the sampling rate)
 window_size = int(window_size_sec * neuron_count.rate)
@@ -330,16 +327,7 @@ plt.legend()
 # What can we do to mitigate over-fitting now?
 #
 # #### Reducing feature dimensionality
-# One way to proceed is to find a lower-dimensional representation of the response
-# by parametrizing the decay effect. For instance, we could try to model it
-# with an exponentially decaying function $f(t) = \exp( - \alpha t)$, with
-# $\alpha >0$ a positive scalar. This is not a bad idea, because we would greatly
-# simplify the dimensionality our features (from 80 to 1). Unfortunately,
-# there is no way to know a-priori what is a good parameterization. More
-# importantly, not all the parametrizations guarantee a unique and stable solution
-# to the maximum likelihood estimation of the coefficients (convexity).
-#
-# Let's see how to use NeMoS' `basis` module to reduce dimensionality instead!
+# Let's see how to use NeMoS' `basis` module to reduce dimensionality and avoid over-fitting!
 # For history-type inputs, we'll use again the raised cosine log-stretched basis,
 # [Pillow et al., 2005](https://www.jneurosci.org/content/25/47/11003).
 # <div class="notes">
@@ -504,12 +492,14 @@ workshop_utils.plotting.plot_rates_and_smoothed_counts(
 # - Convolve all counts.
 # - Print the output shape
 # </div>
+
 # convolve all the neurons
 convolved_count = basis.compute_features(count)
 
 # %%
-# Check the dimension to make sure it make sense
-# Shape should be (n_samples, n_basis_func * n_neurons)
+# Check the dimension to make sure it make sense.
+
+# shape should be `(n_samples, n_basis_func * n_neurons)`
 print(f"Convolved count shape: {convolved_count.shape}")
 
 # %%
@@ -536,11 +526,12 @@ print(f"Model coefficients shape: {model.coef_.shape}")
 
 # %%
 # #### Comparing model predictions.
-# Predict the rate (counts are already sorted by tuning prefs)
 # <div class="notes">
 # - Predict the firing rate of each neuron
 # - Convert the rate from spike/bin to spike/sec
 # </div>
+
+# predict the rate (counts are already sorted by tuning prefs)
 predicted_firing_rate = model.predict(convolved_count) * conv_spk.rate
 
 # %%
