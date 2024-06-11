@@ -162,7 +162,7 @@ count = nap.TsdFrame(
 )
 
 # %%
-# ## NeMoS
+# ## NeMoS {.strip-code}
 # It's time to use NeMoS. Our goal is to estimate the pairwise interaction between neurons.
 # This can be quantified with a GLM if we use the recent population spike history to predict the current time step.
 # ### Self-Connected Single Neuron
@@ -173,7 +173,8 @@ count = nap.TsdFrame(
 #
 # <div class="notes">
 # - Start with modeling a self-connected single neuron
-# - Select a neuron and visualize the spike count time course
+# - Select a neuron
+# - Select the first 1.2 seconds for visualization
 # </div>
 
 # select a neuron's spike count time series
@@ -184,10 +185,19 @@ epoch_one_spk = nap.IntervalSet(
     start=count.time_support.start[0], end=count.time_support.start[0] + 1.2
 )
 
+# %%
+# Plot the window.
+# <div class="notes">
+# - visualize the spike count time course
+# </div>
+
+# {.keep-code}
 # set the size of the spike history window in seconds
 window_size_sec = 0.8
 
-workshop_utils.plotting.plot_history_window(neuron_count, epoch_one_spk, window_size_sec)
+workshop_utils.plotting.plot_history_window(
+    neuron_count, epoch_one_spk, window_size_sec
+)
 
 # %%
 # The feature matrix is obtained by shifting the prediction window forward in time and stacking vertically
@@ -225,6 +235,7 @@ print(f"Feature shape: {input_feature.shape}")
 # - Plot the convolution output.
 # </div>
 
+# {.keep-code}
 suptitle = "Input feature: Count History"
 neuron_id = 0
 workshop_utils.plotting.plot_features(input_feature, count.rate, suptitle)
@@ -253,7 +264,7 @@ workshop_utils.plotting.plot_features(input_feature, count.rate, suptitle)
 # </div>
 
 # construct the train and test epochs
-duration = neuron_count.time_support.tot_length("s")
+duration = neuron_count.time_support.tot_length()
 start = neuron_count.time_support["start"]
 end = neuron_count.time_support["end"]
 first_half = nap.IntervalSet(start, start + duration / 2)
@@ -279,9 +290,10 @@ model.fit(
 # <div class="notes">
 # - Plot the weights.
 # </div>
+
 plt.figure()
 plt.title("Spike History Weights")
-plt.plot(np.arange(window_size) / count.rate, np.squeeze(model.coef_), lw=2, label="GLM raw history 1st Half")
+plt.plot(np.arange(window_size) / count.rate, model.coef_, lw=2, label="GLM raw history 1st Half")
 plt.axhline(0, color="k", lw=0.5)
 plt.xlabel("Time From Spike (sec)")
 plt.ylabel("Kernel")
@@ -334,6 +346,7 @@ plt.legend()
 # - Visualize the raised cosine basis.
 # </div>
 
+# {.keep-code}
 workshop_utils.plotting.plot_basis()
 
 # %%
@@ -380,6 +393,7 @@ print(f"Compressed count history as feature: {conv_spk.shape}")
 # - Visualize the output.
 # </div>
 
+# {.keep-code}
 # Visualize the convolution results
 epoch_one_spk = nap.IntervalSet(8917.5, 8918.5)
 epoch_multi_spk = nap.IntervalSet(8979.2, 8980.2)
@@ -541,6 +555,7 @@ predicted_firing_rate = model.predict(convolved_count) * conv_spk.rate
 # - Visualize the predicted rate and tuning function.
 # </div>
 
+# {.keep-code}
 # use pynapple for time axis for all variables plotted for tick labels in imshow
 workshop_utils.plotting.plot_head_direction_tuning_model(
     tuning_curves, predicted_firing_rate, spikes, angle, threshold_hz=1,
@@ -552,6 +567,7 @@ workshop_utils.plotting.plot_head_direction_tuning_model(
 # - Visually compare all the models.
 # </div>
 
+# {.keep-code}
 # mkdocs_gallery_thumbnail_number = 2
 workshop_utils.plotting.plot_rates_and_smoothed_counts(
     neuron_count,
@@ -599,4 +615,5 @@ print(responses.shape)
 # - Plot the connectivity map.
 # </div>
 
+# {.keep-code}
 workshop_utils.plotting.plot_coupling(responses, tuning)
