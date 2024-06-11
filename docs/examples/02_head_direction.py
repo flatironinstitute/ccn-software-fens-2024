@@ -199,7 +199,9 @@ plt.tight_layout()
 # # set the size of the spike history window in seconds
 window_size_sec = 0.8
 
-workshop_utils.plotting.plot_history_window(neuron_count, epoch_one_spk, window_size_sec)
+workshop_utils.plotting.plot_history_window(
+    neuron_count, epoch_one_spk, window_size_sec
+)
 
 
 # %%
@@ -307,7 +309,6 @@ model.fit(
 )
 
 # %%
-# %%
 # <div class="notes">
 # - Plot the weights.
 # </div>
@@ -328,7 +329,7 @@ plt.legend()
 # <div class="notes">
 # - Fit on the other half and compare results.
 # </div>
-# fit on the test set
+# Fit on the test set.
 
 model_second_half = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
 model_second_half.fit(
@@ -425,7 +426,9 @@ print(f"Compressed count history as feature: {conv_spk.shape}")
 epoch_one_spk = nap.IntervalSet(8917.5, 8918.5)
 epoch_multi_spk = nap.IntervalSet(8979.2, 8980.2)
 
-workshop_utils.plotting.plot_convolved_counts(neuron_count, conv_spk, epoch_one_spk, epoch_multi_spk)
+workshop_utils.plotting.plot_convolved_counts(
+    neuron_count, conv_spk, epoch_one_spk, epoch_multi_spk
+)
 
 # %%
 # Now that we have our "compressed" history feature matrix, we can fit the ML parameters for a GLM.
@@ -434,9 +437,16 @@ workshop_utils.plotting.plot_convolved_counts(neuron_count, conv_spk, epoch_one_
 # <div class="notes">
 # - Fit the model using the compressed features.
 # </div>
+
+
+model_basis = nmo.glm.GLM(
+    regularizer=nmo.regularizer.UnRegularized("LBFGS")
+)
 # use restrict on interval set training
-model_basis = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
-model_basis.fit(conv_spk.restrict(first_half), neuron_count.restrict(first_half))
+model_basis.fit(
+    conv_spk.restrict(first_half),
+    neuron_count.restrict(first_half)
+)
 
 # %%
 # We can plot the resulting response, noting that the weights we just learned needs to be "expanded" back
@@ -452,7 +462,7 @@ print(model_basis.coef_)
 # - Reconstruct the history filter.
 # </div>
 _, basis_kernels = basis.evaluate_on_grid(window_size)
-self_connection = np.matmul(basis_kernels, np.squeeze(model_basis.coef_))
+self_connection = np.matmul(basis_kernels, model_basis.coef_)
 
 print(self_connection.shape)
 
@@ -464,7 +474,7 @@ print(self_connection.shape)
 # </div>
 plt.figure()
 plt.title("Spike History Weights")
-plt.plot(time, np.squeeze(model.coef_), alpha=0.3, label="GLM raw history")
+plt.plot(time, model.coef_, alpha=0.3, label="GLM raw history")
 plt.plot(time, self_connection, "--k", label="GLM basis", lw=2)
 plt.axhline(0, color="k", lw=0.5)
 plt.xlabel("Time from spike (sec)")
@@ -484,12 +494,12 @@ model_basis_second_half = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized(
 model_basis_second_half.fit(conv_spk.restrict(second_half), neuron_count.restrict(second_half))
 
 # compute responses for the 2nd half fit
-self_connection_second_half = np.matmul(basis_kernels, np.squeeze(model_basis_second_half.coef_))
+self_connection_second_half = np.matmul(basis_kernels, model_basis_second_half.coef_)
 
 plt.figure()
 plt.title("Spike History Weights")
-plt.plot(time, np.squeeze(model.coef_), "k", alpha=0.3, label="GLM raw history 1st half")
-plt.plot(time, np.squeeze(model_second_half.coef_), alpha=0.3, color="orange", label="GLM raw history 2nd half")
+plt.plot(time, model.coef_, "k", alpha=0.3, label="GLM raw history 1st half")
+plt.plot(time, model_second_half.coef_, alpha=0.3, color="orange", label="GLM raw history 2nd half")
 plt.plot(time, self_connection, "--k", lw=2, label="GLM basis 1st half")
 plt.plot(time, self_connection_second_half, color="orange", lw=2, ls="--", label="GLM basis 2nd half")
 plt.axhline(0, color="k", lw=0.5)
@@ -545,7 +555,7 @@ print(f"Convolved count shape: {convolved_count.shape}")
 #
 # <div class="notes">
 # - Fit a `PopulationGLM`
-# - Print the `coeff_` shape
+# - Print the shape of the estimated coefficients.
 # </div>
 
 model = nmo.glm.PopulationGLM(
@@ -571,8 +581,10 @@ predicted_firing_rate = model.predict(convolved_count) * conv_spk.rate
 # </div>
 
 # use pynapple for time axis for all variables plotted for tick labels in imshow
-workshop_utils.plotting.plot_head_direction_tuning_model(tuning_curves, predicted_firing_rate, spikes, angle, threshold_hz=1,
-                                          start=8910, end=8960, cmap_label="hsv")
+workshop_utils.plotting.plot_head_direction_tuning_model(
+    tuning_curves, predicted_firing_rate, spikes, angle, threshold_hz=1,
+    start=8910, end=8960, cmap_label="hsv"
+)
 # %%
 # Let's see if our firing rate predictions improved and in what sense.
 # <div class="notes">
