@@ -621,10 +621,10 @@ smooth_predicted_fr = predicted_fr.smooth(.05, size_factor=20)
 
 # and plot!
 workshop_utils.plotting.current_injection_plot(current, spikes, firing_rate,
-                                      # plot the predicted firing rate that has
-                                      # been smoothed the same way as the
-                                      # smoothed spike train
-                                      predicted_firing_rate=smooth_predicted_fr)
+                                               # plot the predicted firing rate that has
+                                               # been smoothed the same way as the
+                                               # smoothed spike train
+                                               smooth_predicted_fr)
 
 # %%
 #
@@ -709,9 +709,9 @@ fig.axes[0].legend()
 # parameters and do formal model comparison in order to determine how much history is
 # necessary.
 #
-# For now, let's use a duration of 80 msec:
+# For now, let's use a duration of 200 msec:
 
-current_history_duration_sec = 0.08
+current_history_duration_sec = .2
 # convert this from sec to bins
 current_history_duration = int(current_history_duration_sec / bin_size)
 
@@ -746,7 +746,7 @@ binned_current[2:]
 # 1 or 5 msec ago matters a lot, whereas whether an input happened 51 or 55 msec ago is
 # less important.
 
-workshop_utils.plotting.plot_basis(window_size_sec=.08)
+workshop_utils.plotting.plot_basis(window_size_sec=current_history_duration_sec)
 
 # %%
 # [^3]: Pillow, J. W., Paninski, L., Uzzel, V. J., Simoncelli, E. P., & J.,
@@ -778,10 +778,11 @@ workshop_utils.plotting.plot_basis(window_size_sec=.08)
 #     How is this description? any other examples?
 
 basis = nmo.basis.RaisedCosineBasisLog(
-    n_basis_funcs=8, mode="conv", window_size=current_history_duration,
+    n_basis_funcs=10, mode="conv", window_size=current_history_duration,
 )
 
 # %%
+#
 # !!! note "Visualizing `Basis` objects"
 #
 #     NeMoS provides some convenience functions for quickly visualizing the basis, in
@@ -804,10 +805,10 @@ print(current_history.shape)
 
 # %%
 #
-# We can see that our design matrix is now 28020 time points by 8 features. If we had
+# We can see that our design matrix is now 28020 time points by 10 features. If we had
 # used the raw shifted data as the features, like we started to do above, we'd have a
-# design matrix with 80 features, so we've ended up with an order of magnitude fewer
-# features!
+# design matrix with 200 features, so we've ended up with more than an order of
+# magnitude fewer features!
 #
 # What do these features look like?
 
@@ -840,13 +841,119 @@ workshop_utils.plotting.plot_current_history_features(binned_current, current_hi
 # lag between the predictor and current increases. Let's see what this looks like when
 # we go to fit the model!
 #
-#
+# We'll use the same model set-up as before, only changing the design matrix we pass to
+# the model:
 
+history_model = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized(solver_name="LBFGS"))
+history_model.fit(current_history, count)
+
+# %%
+#
+# As before, we can examine our parameters, `coef_` and `intercept_`:
+
+print(f"firing_rate(t) = exp({history_model.coef_} * current(t) + {history_model.intercept_})")
+
+# %%
+#
+# Notice the shape of these parameters:
+
+print(history_model.coef_.shape)
+print(history_model.intercept_.shape)
+
+# %%
+#
+# `coef_` has 10 values now, while `intercept_` still has one &mdash; why is that?
+# Because we now have 10 features, but still only 1 neuron whose firing rate we're
+# predicting.
+#
+# Let's re-examine our predicted firing rate and see how the new history_model does:
+
+# all this code is the same as above
+history_pred_fr = history_model.predict(current_history)
+history_pred_fr = history_pred_fr / bin_size
+smooth_history_pred_fr = history_pred_fr.dropna().smooth(.05, size_factor=20)
+workshop_utils.plotting.current_injection_plot(current, spikes, firing_rate,
+                                               # compare against the old firing rate
+                                               smooth_history_pred_fr, smooth_predicted_fr)
+# %%
+#
+# We can see that there are only some small changes here. Our new model maintains the
+# two successes of the old one: firing rate increases with injected current and shows
+# the observed periodicity. Our model has not improved the match between the firing rate
+# in the first or second intervals, but it seems to do a better job of capturing the
+# onset transience, especially in the third interval.
+#
+# We can similarly examine our mean firing rate and the tuning curves we examined before:
+
+# compare observed mean firing rate with the history_model predicted one
+print(f"Observed mean firing rate: {np.mean(count) / bin_size} Hz")
+print(f"Predicted mean firing rate (instantaneous current): {np.nanmean(predicted_fr)} Hz")
+print(f"Predicted mean firing rate (current history): {np.nanmean(smooth_history_pred_fr)} Hz")
+
+tuning_curve_history_model = nap.compute_1d_tuning_curves_continuous(smooth_history_pred_fr[:, np.newaxis], current, 15)
+fig = workshop_utils.plotting.tuning_curve_plot(tuning_curve)
+fig.axes[0].plot(tuning_curve_history_model, color="tomato", label="glm (current history)")
+fig.axes[0].plot(tuning_curve_model, color="tomato", linestyle='--', label="glm (instantaneous current)")
+fig.axes[0].legend()
+
+# %%
+#
+# This new model is actually doing a worse job matching the mean firing rate. Looking at
+# the tuning curve, it looks like this model does predict response saturation, at about
+# the right level, and it seems to do a better job at the lower current levels , though
+# its maximum firing is far too low.
+#
+# Comparing the two models by examining their predictions is important, but you may also
+# want a number with which to evaluate and compare your models' performance. As
+# discussed earlier, the model optimizes log-likelihood to find the best-fitting
+# weights, and we can calculate this number using its `score` method:
+
+log_likelihood = model.score(predictor, count, score_type="log-likelihood")
+print(f"log-likelihood (instantaneous current): {log_likelihood}")
+log_likelihood = history_model.score(current_history, count, score_type="log-likelihood")
+print(f"log-likelihood (current history): {log_likelihood}")
+
+# %%
+#
+# This log-likelihood is un-normalized and thus doesn't mean that much by
+# itself, other than "higher=better". When comparing alternative GLMs fit on
+# the same dataset, whether that's models using different regularizers and
+# solvers or those using different predictors, comparing log-likelihoods is a
+# reasonable thing to do.
+#
+# !!! info
+#
+#     Under the hood, NeMoS is minimizing the negative log-likelihood, as is
+#     typical in many optimization contexts. `score` returns the real
+#     log-likelihood, however, and thus higher is better.
+#
+# Because it's un-normalized, however, the log-likelihood should not be
+# compared across datasets (because e.g., it won't account for difference in
+# noise levels). We provide the ability to compute the pseudo-$R^2$ for this
+# purpose:
+
+r2 = model.score(predictor, count, score_type='pseudo-r2-Cohen')
+print(f"pseudo-r2 (instantaneous current): {r2}")
+r2 = history_model.score(current_history, count, score_type='pseudo-r2-Cohen')
+print(f"pseudo-r2 (current history): {r2}")
+
+# %%
+#
+# Thus, we can see that adding the current history does slightly improve the model, as
+# judged by either the log-likelihood or the pseudo-$R^2$. However, notice that we
+# increased our number of parameters tenfold, and only found a small improvement in
+# performance. Increasing the number of parameters makes you more susceptible to
+# overfitting &mdash; is this tradeoff worth it? To properly answer this question, one
+# should split the dataset into test and train sets, training the model on one subset of
+# the data and testing it on another to test the model's generalizability. We'll see a
+# simple version of this in the next exercise, and a more streamlined version, using
+# `scikit-learn`'s pipelining and cross-validation machinery, will be presented in an
+# advanced exercise.
+#
 # %%
 # ### Finishing up
 #
-# There are a handful of other operations you might like to do with the GLM.
-# First, you might be wondering how to simulate spikes &mdash; the GLM is a LNP
+# You might be wondering how to simulate spikes &mdash; the GLM is a LNP
 # model, but the firing rate is just the output of *LN*, its first two steps.
 # The firing rate is just the mean of a Poisson process, so we can pass it to
 # `jax.random.poisson`:
@@ -868,40 +975,12 @@ spikes = jax.random.poisson(jax.random.PRNGKey(123), predicted_fr.values)
 # connected to themselves or each other), simulations can sometimes can behave
 # poorly because of runaway excitation [^1][^2].
 #
-# Finally, you may want a number with which to evaluate your model's
-# performance. As discussed earlier, the model optimizes log-likelihood to find
-# the best-fitting weights, and we can calculate this number using its `score`
-# method:
-#
 # [^1]: Arribas, Diego, Yuan Zhao, and Il Memming Park. "Rescuing neural spike train
 # models from bad MLE." Advances in Neural Information Processing Systems 33 (2020):
 # 2293-2303.
 # [^2]: Hocker, David, and Memming Park. "Multistep inference for generalized linear
 # spiking models curbs runaway excitation." International IEEE/EMBS Conference on Neural Engineering,
 # May 2017.
-
-log_likelihood = model.score(predictor, count, score_type="log-likelihood")
-print(f"log-likelihood: {log_likelihood}")
-
-# %%
-#
-# This log-likelihood is un-normalized and thus doesn't mean that much by
-# itself, other than "higher=better". When comparing alternative GLMs fit on
-# the same dataset, whether that's models using different regularizers and
-# solvers or those using different predictors, comparing log-likelihoods is a
-# reasonable thing to do.
-#
-# !!! info
-#
-#     Under the hood, NeMoS is minimizing the negative log-likelihood, as is
-#     typical in many optimization contexts. `score` returns the real
-#     log-likelihood, however, and thus higher is better.
-#
-# Because it's un-normalized, however, the log-likelihood should not be
-# compared across datasets (because e.g., it won't account for difference in
-# noise levels). We provide the ability to compute the pseudo-$R^2$ for this
-# purpose:
-model.score(predictor, count, score_type='pseudo-r2-Cohen')
 
 # %%
 #

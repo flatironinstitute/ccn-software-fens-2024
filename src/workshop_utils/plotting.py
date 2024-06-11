@@ -28,7 +28,7 @@ def tuning_curve_plot(tuning_curve: pd.DataFrame):
 
 def current_injection_plot(current: nap.Tsd, spikes: nap.TsGroup,
                            firing_rate: nap.TsdFrame,
-                           predicted_firing_rate: Optional[nap.TsdFrame] = None):
+                           *predicted_firing_rates: Optional[nap.TsdFrame]):
     ex_intervals = current.threshold(0.0).time_support
 
     # define plotting parameters
@@ -52,8 +52,13 @@ def current_injection_plot(current: nap.Tsd, spikes: nap.TsGroup,
     # second row subplot: response
     resp_ax = plt.subplot2grid((4, 3), loc=(1, 0), rowspan=1, colspan=3, fig=fig)
     resp_ax.plot(firing_rate, color="k", label="Observed firing rate")
-    if predicted_firing_rate:
-        resp_ax.plot(predicted_firing_rate, color="tomato", label='Predicted firing rate')
+    if predicted_firing_rates:
+        if len(predicted_firing_rates) > 1:
+            lbls = [' (current history)', ' (instantaneous only)']
+        else:
+            lbls = ['']
+        for pred_fr, style, lbl in zip(predicted_firing_rates, ['-', '--'], lbls):
+            resp_ax.plot(pred_fr, linestyle=style, color="tomato", label='Predicted firing rate{lbl}')
     resp_ax.plot(spikes.to_tsd([-1.5]), "|", color="k", ms=10, label="Observed spikes")
     resp_ax.set_ylabel("Firing rate (Hz)")
     resp_ax.set_xlabel("Time (s)")
@@ -70,10 +75,12 @@ def current_injection_plot(current: nap.Tsd, spikes: nap.TsGroup,
         ax = plt.subplot2grid((4, 3), loc=(2, i), rowspan=1, colspan=1, fig=fig)
         ax.plot(firing_rate.restrict(interval), color="k")
         ax.plot(spikes.restrict(interval).to_tsd([-1.5]), "|", color="k", ms=10)
-        if predicted_firing_rate:
-            ax.plot(predicted_firing_rate.restrict(interval), color="tomato")
+        if predicted_firing_rates:
+            for pred_fr, style in zip(predicted_firing_rates, ['-', '--']):
+                ax.plot(pred_fr.restrict(interval), linestyle=style,
+                        color="tomato")
         else:
-                ax.set_ylim(ylim)
+            ax.set_ylim(ylim)
         if i == 0:
             ax.set_ylabel("Firing rate (Hz)")
         ax.set_xlabel("Time (s)")
