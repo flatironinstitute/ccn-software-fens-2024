@@ -164,8 +164,9 @@ count = nap.TsdFrame(
 # This can be quantified with a GLM if we use the recent population spike history to predict the current time step.
 # ### Self-Connected Single Neuron
 # To simplify our life, let's see first how we can model spike history effects in a single neuron.
-# The simplest approach is to use counts in fixed length window $i$, $y_{t-i}, \dots, y_{t-1}$ to predict the next
-# count $y_{t}$. Let's plot the count history,
+# Let's follow the simplest approach at first, which is to
+# use counts in fixed length window $i$, $y_{t-i}, \dots, y_{t-1}$ to predict the next
+# count $y_{t}$.
 #
 # <div class="notes">
 # - Start with modeling a self-connected single neuron
@@ -189,50 +190,20 @@ plt.ylabel("Counts")
 plt.tight_layout()
 
 # %%
-# #### Features Construction
-# Let's fix the spike history window size that we will use as predictor.
-# <div class="notes">
-# - Use the past counts over a fixed window to predict the current sample
-# </div>
-
-
-# # set the size of the spike history window in seconds
-window_size_sec = 0.8
-
-workshop_utils.plotting.plot_history_window(
-    neuron_count, epoch_one_spk, window_size_sec
-)
-
-
-# %%
-# For each time point, we shift our window one bin at the time and vertically stack the spike count history in a matrix.
-# Each row of the matrix will be used as the predictors for the rate in the next bin (red narrow rectangle in
-# the figure).
-# <div class="notes">
-# - Roll your window one bin at the time to predict the subsequent samples
-# </div>
-
-workshop_utils.plotting.run_animation(neuron_count, epoch_one_spk.start[0])
-
-# %%
-# If $t$ is smaller than the window size, we won't have a full window of spike history for estimating the rate.
-# One may think of padding the window (with zeros for example) but this may generate weird border artifacts.
-# To avoid that, we can simply restrict our analysis to times $t$ larger than the window and NaN-pad earlier
-# time-points;
-#
-# A fast way to compute this feature matrix is convolving the counts with the identity matrix.
-# We can apply the convolution and NaN-padding in a single step using the
-# [`nemos.utils.create_convolutional_predictor`](../../../reference/nemos/utils/#nemos.utils.create_convolutional_predictor)
-# function.
+# The feature matrix is obtained by shift the prediction window forward in time and vertically stack
+# the result in an array of shape `(n_shift, window_size)`.
+# A fast wat to do so is convolving the counts with the identity matrix.
 # <div class="notes">
 # - Form a predictor matrix by vertically stacking all the windows (you can use a convolution).
 # </div>
+
+# define a window size
+window_size_sec = 0.8
 
 # convert the prediction window to bins (by multiplying with the sampling rate)
 window_size = int(window_size_sec * neuron_count.rate)
 
 # convolve the counts with the identity matrix.
-plt.close("all")
 input_feature = nmo.convolve.create_convolutional_predictor(
     np.eye(window_size), neuron_count
 )
@@ -241,8 +212,7 @@ input_feature = nmo.convolve.create_convolutional_predictor(
 print("NaN indices:\n", np.where(np.isnan(input_feature[:, 0]))[0])
 
 # %%
-# The binned counts originally have shape "number of samples", we should check that the
-# dimension are matching our expectation
+# We should check that the dimension are matching our expectation.
 # <div class="notes">
 # - Check the shape of the counts and features.
 # </div>
