@@ -119,7 +119,7 @@ bin_size = 0.01
 count = spikes.count(bin_size, ep=wake_ep)
 
 # %%
-# Here we are going to rearrange neurons order based on their prefered directions.
+# Here we are going to rearrange neurons order based on their preferred directions.
 #
 
 

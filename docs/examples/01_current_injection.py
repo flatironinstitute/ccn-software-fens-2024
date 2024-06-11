@@ -141,7 +141,7 @@ spikes = data["units"]
 # %% 
 # First, let's examine `trial_interval_set`:
 # <div class="notes">"
-# - `trial_interval_set`: dictionnary of start and end times of different intervals, defining the
+# - `trial_interval_set`: dictionary of start and end times of different intervals, defining the
 #   experimental structure, specifying when each stimulation protocol began and
 #   ended.
 # </div>
@@ -153,7 +153,7 @@ trial_interval_set.keys()
 # `trial_interval_set` is a dictionary with strings for keys and
 # [`IntervalSets`](https://pynapple-org.github.io/pynapple/reference/core/interval_set/)
 # for values. Each key defines the stimulus protocol, with the value defining
-# the begining and end of that stimulation protocol.
+# the beginning and end of that stimulation protocol.
 #
 # <div class="notes">"
 # - `Noise 1`: epochs of random noise
@@ -218,7 +218,7 @@ current
 # potentially different time indices:
 #
 # <div class="notes">"
-# - `TsGroup` : a custom dictionnary holding multiple `Ts` (timeseries) objects with
+# - `TsGroup` : a custom dictionary holding multiple `Ts` (timeseries) objects with
 # potentially different time indices.
 # </div>
 
@@ -769,7 +769,7 @@ workshop_utils.plotting.plot_basis(window_size_sec=current_history_duration_sec)
 #   direction.
 #
 # - Convolution mode applies a convolution of the input data to the bank of filters
-#   defined by the basis, and is particularly sueful when analyzing data with inherent
+#   defined by the basis, and is particularly useful when analyzing data with inherent
 #   temporal dependencies, such as spike history or the history of input current in this
 #   example. In convolution mode, we must additionally specify the `window_size`, the
 #   length of the filters in bins.
