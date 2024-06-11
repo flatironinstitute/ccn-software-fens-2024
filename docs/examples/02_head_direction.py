@@ -545,11 +545,14 @@ print(f"Convolved count shape: {convolved_count.shape}")
 #
 # <div class="notes">
 # - Fit a `PopulationGLM`
+# - Print the `coeff_` shape
 # </div>
 
 model = nmo.glm.PopulationGLM(
     regularizer=nmo.regularizer.Ridge(regularizer_strength=0.1, solver_name="LBFGS"),
     ).fit(convolved_count, count)
+
+print(f"Model coefficients shape: {model.coef_.shape}")
 
 # %%
 # #### Comparing model predictions.
