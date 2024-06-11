@@ -312,33 +312,15 @@ plt.legend()
 # importantly, not all the parametrizations guarantee a unique and stable solution
 # to the maximum likelihood estimation of the coefficients (convexity).
 #
-# In the GLM framework, the main way to construct a lower dimensional parametrization
-# while preserving convexity, is to use a set of basis functions.
-# For history-type inputs, whether of the spiking history or of the current
-# history, we'll use the raised cosine log-stretched basis first described in
-# [Pillow et al., 2005](https://www.jneurosci.org/content/25/47/11003). This
-# basis set has the nice property that their precision drops linearly with
-# distance from event, which is a makes sense for many history-related inputs
-# in neuroscience: whether an input happened 1 or 5 msec ago matters a lot,
-# whereas whether an input happened 51 or 55 msec ago is less important.
-
+# Let's see how to use NeMoS' `basis` module to reduce dimensionality instead!
+# For history-type inputs, we'll use again the raised cosine log-stretched basis,
+# [Pillow et al., 2005](https://www.jneurosci.org/content/25/47/11003).
 
 workshop_utils.plotting.plot_basis()
 
 # %%
-# !!! info
-#
-#     We provide a handful of different choices for basis functions, and
-#     selecting the proper basis function for your input is an important
-#     analytical step. We will eventually provide guidance on this choice, but
-#     for now we'll give you a decent choice.
-#
-# NeMoS includes `Basis` objects to handle the construction and use of these
-# basis functions.
-#
-# When we instantiate this object, the only arguments we need to specify is the
-# number of functions we want, the mode of operation of the basis (`"conv"`),
-# and the window size for the convolution. With more basis functions, we'll be able to
+# As before, we can instantiate this object in the `"conv"` mode of operation, and we
+# can pass the window size for the convolution. With more basis functions, we'll be able to
 # represent the effect of the corresponding input with the higher precision, at
 # the cost of adding additional parameters.
 
@@ -351,35 +333,14 @@ basis = nmo.basis.RaisedCosineBasisLog(
 # across their whole domain:
 time, basis_kernels = basis.evaluate_on_grid(window_size)
 
-# print(basis_kernels.shape)
+print(basis_kernels.shape)
 
 # time takes equi-spaced values between 0 and 1, we could multiply by the
 # duration of our window to scale it to seconds.
 time *= window_size_sec
 
 # %%
-# To appreciate why the raised-cosine basis can approximate well our response
-# we can learn a "good" set of weight for the basis element such that
-# a weighted sum of the basis approximates the GLM weights for the count history.
-# One way to do so is by minimizing the least-squares.
-
-
-# compute the least-squares weights
-lsq_coef, _, _, _ = np.linalg.lstsq(basis_kernels, np.squeeze(model.coef_), rcond=-1)
-
-# plot the basis and the approximation
-workshop_utils.plotting.plot_weighted_sum_basis(time, model.coef_, basis_kernels, lsq_coef)
-
-# %%
-#
-# The first plot is the response of each of the 8 basis functions to a single
-# pulse. This is known as the impulse response function, and is a useful way to
-# characterize linear systems like our basis objects. The second plot are is a
-# bar plot representing the least-square coefficients. The third one are the
-# impulse responses scaled by the weights. The last plot shows the sum of the
-# scaled response overlapped to the original spike count history weights.
-#
-# Our predictor previously was huge: every possible 80 time point chunk of the
+# Our spike history predictor was huge: every possible 80 time point chunk of the
 # data, for 1440000 total numbers. By using this basis set we can instead reduce
 # the predictor to 8 numbers for every 80 time point window for 144000 total
 # numbers. Basically an order of magnitude less. With 1ms bins we would have
@@ -389,7 +350,7 @@ workshop_utils.plotting.plot_weighted_sum_basis(time, model.coef_, basis_kernels
 #
 # Let's see our basis in action. We can "compress" spike history feature by convolving the basis
 # with the counts (without creating the large spike history feature matrix).
-# This can be performed in NeMoS by calling the "compute_features" method of basis.
+# This can be performed in NeMoS by calling the `compute_features` method of basis.
 
 
 # equivalent to
@@ -405,16 +366,8 @@ epoch_multi_spk = nap.IntervalSet(8979.2, 8980.2)
 
 workshop_utils.plotting.plot_convolved_counts(neuron_count, conv_spk, epoch_one_spk, epoch_multi_spk)
 
-# find interval with two spikes to show the accumulation, in a second row
-
 # %%
 # Now that we have our "compressed" history feature matrix, we can fit the ML parameters for a GLM.
-
-# %%
-#
-# !!! warning
-#     We'll need a little bit of work here constructing the feature matrix, but I think it
-#     can be moved through pretty quickly, given what I've covered in the previous section
 #
 # #### Fit and compare the models
 
@@ -470,25 +423,8 @@ plt.xlabel("Time from spike (sec)")
 plt.ylabel("Weight")
 plt.legend()
 
-
-# %%
-# Or we can score the model predictions using both one half of the set for training
-# and the other half for testing.
-
-# compare model scores, as expected the training score is better with more parameters
-# this may could be over-fitting.
-print(f"full history train score: {model.score(input_feature.restrict(first_half), neuron_count.restrict(first_half), score_type='pseudo-r2-Cohen')}")
-print(f"basis train score: {model_basis.score(conv_spk.restrict(first_half), neuron_count.restrict(first_half), score_type='pseudo-r2-Cohen')}")
-
-# %%
-# To check that, let's try to see ho the model perform on unseen data and obtaining a test
-# score.
-print(f"\nfull history test score: {model.score(input_feature.restrict(second_half), neuron_count.restrict(second_half), score_type='pseudo-r2-Cohen')}")
-print(f"basis test score: {model_basis.score(conv_spk.restrict(second_half), neuron_count.restrict(second_half), score_type='pseudo-r2-Cohen')}")
-
 # %%
 # Let's extract and plot the rates
-
 
 rate_basis = model_basis.predict(conv_spk) * conv_spk.rate
 rate_history = model.predict(input_feature) * conv_spk.rate
@@ -496,7 +432,7 @@ ep = nap.IntervalSet(start=8819.4, end=8821)
 
 # plot the rates
 workshop_utils.plotting.plot_rates_and_smoothed_counts(
-    neuron_count,
+    neuron_count.restrict(ep),
     {"Self-connection raw history":rate_history, "Self-connection bsais": rate_basis}
 )
 
