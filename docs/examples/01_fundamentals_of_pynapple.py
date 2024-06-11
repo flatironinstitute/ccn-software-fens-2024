@@ -9,6 +9,10 @@
 - Slicing pynapple objects
 - Learn the core functions of pynapple
 
+The pynapple documentation can be found [here](https://pynapple-org.github.io/pynapple/).
+
+The documentation for objects and method of the core of pynapple is [here](https://pynapple-org.github.io/pynapple/reference/core/).
+
 
 Let's start by importing the pynapple package and matplotlib to see if everything is correctly installed. 
 If an import fails, you can do `!pip install pynapple matplotlib` in a cell to fix it.
