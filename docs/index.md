@@ -2,7 +2,13 @@
 
 # Flatiron CCN workshop on neural data analysis
 
-WRITE INTRO TEXT HERE
+We are excited to see everyone at the Flatiron Center for Computational Neuroscience FENS Satellite event on using open source packages to analyze and visualize neural data! You should have received an email with logistical information, including the schedule and link to the slack channel where we will be communicating the workshop. If you did not receive this email, please let us know!
+
+Over the course of this two-day workshop, we will walk you through the notebooks included on this site in order to demonstrate how to use pynapple, fastplotlib, and NeMoS to analyze and visualize your data!
+
+Before the workshop, please try to follow the [setup](#setup) instructions below to install everything on your personal laptop. Additionally, if you are bringing your own data, please see the section on [converting your data to NWB](#converting-your-data-to-nwb).
+
+The presentations for this workshop can be found [at this page](https://neurorse.flatironinstitute.org/workshops/fens-2024).
 
 ## Setup
 
