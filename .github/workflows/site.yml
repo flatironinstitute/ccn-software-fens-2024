@@ -2,8 +2,8 @@ name: Deploy to github pages
 on:
   push:
     branches: [main]
-  schedule:
-    - cron: "0 0 * * 0" # weekly
+  pull_request:
+    branches: [main]
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
