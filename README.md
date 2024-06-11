@@ -64,18 +64,34 @@ Instead of directly writing tutorials as `.ipynb` files, which are hard to versi
     # ### Visible header
     ```
 
-    4. If a header is followed by `{.strip-code}`, then the `for_users/` version will remove all headers beneath it (but not itself) until we hit the next header with the same level or higher:
+    4. If a header is followed by `{.strip-code}`, then the `for_users/` version will remove all code beneath it, until we hit the next header with the same level or higher:
     
     ```python
-    # ## Visible header
+    # ## Header
     this_code_present
-    # ### Visible header {.strip-code}
+    # ### Header {.strip-code}
     this_code_removed
-    # #### Hidden header
+    # #### Header
     this_code_removed
-    # ### Visible header
+    # ### Header
     this_code_present
     ```
+    
+    5. If a code block starts with `# {.keep-code}`, then that code will be preserved in the `for_users/` version (this over-rules the `{.strip-code}` directive):
+    
+    ```python
+    # ## Header
+    this_code_present
+    # ### Header {.strip-code}
+    this_code_removed
+    # #### Header
+
+    # {.keep-code}
+    this_code_present
+    # #### Header
+    this_code_removed
+    ```
+    Note the empty line between the header and `{.keep-code}`! This is necessary to ensure that the line with `{.keep-code}` is considered part of the code block, not the markdown block containing the header.
 
 ## binder
 
