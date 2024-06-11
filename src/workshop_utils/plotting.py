@@ -477,6 +477,7 @@ def plot_features(
     fig = plt.figure(figsize=(8, 8))
     plt.suptitle(suptitle)
     time = np.arange(0, window_size) / sampling_rate
+    input_feature = input_feature.dropna()
     for k in range(n_rows):
         ax = plt.subplot(n_rows, 1, k + 1)
         plt.step(time, input_feature[k], where="post")
@@ -651,7 +652,7 @@ class PlotSlidingWindow():
 
     @staticmethod
     def set_lines_visible(line_tree, visible: bool):
-        jax.tree_map(lambda line: line.set_visible(visible), line_tree)
+        jax.tree_util.tree_map(lambda line: line.set_visible(visible), line_tree)
 
     def run(self):
         anim = FuncAnimation(self.fig, self.update_fig, self.n_shift, interval=self.interval, repeat=True)
