@@ -602,7 +602,8 @@ tuning = nap.compute_1d_tuning_curves_continuous(predicted_firing_rate,
 #   shape (num_neurons, num_neurons, num_features).
 # </div>
 
-weights = model.coef_.reshape(count.shape[1], basis.n_basis_funcs, count.shape[1])
+n_neurons = count.shape[1]
+weights = model.coef_.reshape(n_neurons, basis.n_basis_funcs, n_neurons)
 
 
 # %%
