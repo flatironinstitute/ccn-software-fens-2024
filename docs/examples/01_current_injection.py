@@ -463,7 +463,8 @@ workshop_utils.plotting.tuning_curve_plot(tuning_curve)
 #     term which comes from statistics.
 #
 # <div class="notes">
-#   - Get data from pynapple to NeMoS-ready format:
+#  Get data from pynapple to NeMoS-ready format:
+#
 #   - predictors and spikes must have same number of time points
 # </div>
 
@@ -708,6 +709,11 @@ fig.axes[0].legend()
 # necessary.
 #
 # For now, let's use a duration of 200 msec:
+#
+# <div class="notes">
+#   - choose a length of time over which the neuron integrates the input current
+# </div>
+
 
 current_history_duration_sec = .2
 # convert this from sec to bins
@@ -771,6 +777,10 @@ workshop_utils.plotting.plot_basis(window_size_sec=current_history_duration_sec)
 #   temporal dependencies, such as spike history or the history of input current in this
 #   example. In convolution mode, we must additionally specify the `window_size`, the
 #   length of the filters in bins.
+#
+# <div class="notes">
+#   - define a basis object
+# </div>
 
 basis = nmo.basis.RaisedCosineBasisLog(
     n_basis_funcs=10, mode="conv", window_size=current_history_duration,
@@ -793,6 +803,11 @@ basis = nmo.basis.RaisedCosineBasisLog(
 #     ```
 #
 # With this basis in hand, we can compress our input features:
+#
+# <div class="notes">
+#   - create the design matrix
+#   - examine the features it contains
+# </div>
 
 # under the hood, this convolves the input with the filter bank visualized above
 current_history = basis.compute_features(binned_current)
@@ -838,6 +853,11 @@ workshop_utils.plotting.plot_current_history_features(binned_current, current_hi
 #
 # We'll initialize and create the GLM object in the same way as before, only changing
 # the design matrix we pass to the model:
+#
+# <div class="notes">
+#   - create and fit the GLM
+#   - examine the parameters
+# </div>
 
 history_model = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized(solver_name="LBFGS"))
 history_model.fit(current_history, count)
@@ -862,6 +882,11 @@ print(history_model.intercept_.shape)
 # predicting.
 #
 # Let's re-examine our predicted firing rate and see how the new model does:
+#
+# <div class="notes">
+#   - compare the predicted firing rate to the data and the old model
+#   - what do we see?
+# </div>
 
 # all this code is the same as above
 history_pred_fr = history_model.predict(current_history)
@@ -879,6 +904,11 @@ workshop_utils.plotting.current_injection_plot(current, spikes, firing_rate,
 # onset transience, especially in the third interval.
 #
 # We can similarly examine our mean firing rate and the tuning curves we examined before:
+#
+# <div class="notes">
+#   - examine the predicted average firing rate and tuning curve
+#   - what do we see?
+# </div>
 
 # compare observed mean firing rate with the history_model predicted one
 print(f"Observed mean firing rate: {np.mean(count) / bin_size} Hz")
@@ -902,6 +932,10 @@ fig.axes[0].legend()
 # want a number with which to evaluate and compare your models' performance. As
 # discussed earlier, the GLM optimizes log-likelihood to find the best-fitting
 # weights, and we can calculate this number using its `score` method:
+#
+# <div class="notes">
+#   - use log-likelihood to compare models
+# </div>
 
 log_likelihood = model.score(predictor, count, score_type="log-likelihood")
 print(f"log-likelihood (instantaneous current): {log_likelihood}")
@@ -937,6 +971,10 @@ print(f"log-likelihood (current history): {log_likelihood}")
 # Note that, because the log-likelihood is un-normalized, it should not be compared
 # across datasets (because e.g., it won't account for difference in noise levels). We
 # provide the ability to compute the pseudo-$R^2$ for this purpose:
+#
+# <div class="notes">
+#   - what if you want to compare models across datasets?
+# </div>
 
 r2 = model.score(predictor, count, score_type='pseudo-r2-Cohen')
 print(f"pseudo-r2 (instantaneous current): {r2}")
@@ -950,7 +988,7 @@ print(f"pseudo-r2 (current history): {r2}")
 # rate is just the mean of a Poisson process, so we can pass it to `jax.random.poisson`:
 #
 # <div class="notes">
-#   - Finally, let's look at spiking and scoring/metrics
+#   - what about spiking?
 # </div>
 
 spikes = jax.random.poisson(jax.random.PRNGKey(123), predicted_fr.values)
