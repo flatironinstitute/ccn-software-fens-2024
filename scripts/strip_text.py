@@ -7,7 +7,7 @@ import os
 import glob
 
 # regex from mkdocs_gallery for grabbing titles
-MD_TITLE_MARKER = re.compile(r"^[ ]*([#]+)[ ]*(.*)[ ]*$")  # One or more starting hash with optional whitespaces before.
+MD_TITLE_MARKER = re.compile(r"^[ ]?([#]+)[ ]*(.*)[ ]*$")  # One or more starting hash with optional whitespaces before.
 RE_3_OR_MORE_NON_ASCII = r"([\W _])\1{3,}"  # 3 or more identical chars
 FIRST_NON_MARKER_WITHOUT_HASH = re.compile(rf"^[# ]*(?!{RE_3_OR_MORE_NON_ASCII})[# ]*(.+)", re.MULTILINE)
 DIV_START = re.compile(r"<div")
