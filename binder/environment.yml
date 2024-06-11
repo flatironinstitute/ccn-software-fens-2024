@@ -1,8 +1,8 @@
-name: nemos
+name: fens2024
 channels:
   - conda-forge
   - nvidia
 dependencies:
+  - python=3.11
   - pip
-  - python='3.11'
   - cuda-nvcc>=12
