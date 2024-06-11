@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "nemos_workshop_feb_2024"
+name = "ccn_software_fens_2024"
 version = "0.1.0"
 authors = [
     {name = "Edoardo Balzani", email = "ebalzani@flatironinstitute.org"},
@@ -11,7 +11,7 @@ authors = [
     {name = "Guillaume Vejo", email = "gviejo@flatironinstitute.org"},
     {name = "Alex Williams", email = "alex.h.williams@nyu.edu"}
 ]
-description = "Utilities for Feb 2024 nemos workshop"
+description = "Utilities for FENS 2024 CCN software workshop"
 readme = "README.md"
 requires-python = ">=3.8"
 keywords = ["neuroscience", "Poisson-GLM"]
