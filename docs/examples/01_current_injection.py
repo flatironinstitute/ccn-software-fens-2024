@@ -507,24 +507,25 @@ print(f"count shape: {count.shape}")
 #     neuron &mdash; do you add an extra dimension? or concatenate neurons along one
 #     of the existing dimensions?
 #
-#     In NeMoS, we always fit Generalized Linear Models to a single neuron at a
-#     time. We'll discuss this more in the [following
-#     tutorial](../02_head_direction/), but briefly: you get the same answer
-#     whether you fit the neurons separately or simultaneously, and fitting
-#     them separately can make your life easier.
+#     In NeMoS, we fit Generalized Linear Models to a single neuron at a time. We'll
+#     discuss this more in the [following tutorial](../02_head_direction/), but briefly:
+#     you get the same answer whether you fit the neurons separately or simultaneously,
+#     and fitting them separately can make your life easier. We also provide a
+#     `PopulationGLM` object to fit an entirely population at once, if you prefer to do
+#     so.
 #
 # ### Fitting the model
 #
 # Now we're ready to fit our model!
 #
-# First, we need to define our GLM model object. We intend for users
-# to interact with our models like
-# [scikit-learn](https://scikit-learn.org/stable/getting_started.html)
-# estimators. In a nutshell, a model instance is initialized with
-# hyperparameters that specify optimization and model details,
-# and then the user calls the `.fit()` function to fit the model to data.
-# We will walk you through the process below by example, but if you
-# are interested in reading more details see the [Getting Started with scikit-learn](https://scikit-learn.org/stable/getting_started.html) webpage.
+# First, we need to define our GLM model object. We intend for users to interact with
+# our models like [scikit-learn](https://scikit-learn.org/stable/getting_started.html)
+# estimators. In a nutshell, a model instance is initialized with hyperparameters that
+# specify optimization and model details, and then the user calls the `.fit()` function
+# with the design matrix and the observed data to fit the model. We will walk you
+# through the process below by example, but if you are interested in reading more
+# details see the [Getting Started with
+# scikit-learn](https://scikit-learn.org/stable/getting_started.html) webpage.
 #
 # To initialize our model, we need to specify the regularizer and observation
 # model objects, both of which should be one of our custom objects:
@@ -539,11 +540,11 @@ print(f"count shape: {count.shape}")
 #
 # !!! warning
 #
-#     With a convex problem like the GLM, in theory it does not matter which
-#     solver algorithm you use. In practice, due to numerical issues, it
-#     generally does. Thus, it's worth trying a couple to see how their
-#     solutions compare. (Different regularization schemes will always give
-#     different results.)
+#     With a convex problem like the GLM, in theory it does not matter which solver
+#     algorithm you use. In practice, due to numerical issues, it generally does. Thus,
+#     it's worth trying a couple to see how their solutions compare. (Note that, since
+#     regularization modifies the objective function, different regularization schemes
+#     will always give different results.)
 #
 # - Observation model: this object links the firing rate and the observed data (in this
 #   case, spikes), describing the distribution of neural activity (and thus changing the
@@ -591,8 +592,8 @@ print(f"firing_rate(t) = exp({model.coef_} * current(t) + {model.intercept_})")
 
 # %%
 #
-# Note that `model.coef_` has shape `(n_features, )`, while `model.intercept_`
-# is a scalar:
+# Note that `model.coef_` has shape `(n_features, )` and `model.intercept_` has shape
+# `(n_neurons, )` (in this case, both are 1):
 
 print(f"coef_ shape: {model.coef_.shape}")
 print(f"intercept_ shape: {model.intercept_.shape}")
@@ -621,9 +622,6 @@ smooth_predicted_fr = predicted_fr.smooth(.05, size_factor=20)
 
 # and plot!
 workshop_utils.plotting.current_injection_plot(current, spikes, firing_rate,
-                                               # plot the predicted firing rate that has
-                                               # been smoothed the same way as the
-                                               # smoothed spike train
                                                smooth_predicted_fr)
 
 # %%
@@ -662,7 +660,7 @@ print(f"Predicted mean firing rate: {np.mean(predicted_fr)} Hz")
 # %%
 #
 # We matched the average pretty well! So we've matched the average and the
-# range of inputs from the third interval reasonably well, but overshot at low
+# range from the third interval reasonably well, but overshot at low
 # inputs and undershot in the middle.
 #
 # We can see this more directly by computing the tuning curve for our predicted
@@ -673,17 +671,17 @@ print(f"Predicted mean firing rate: {np.mean(predicted_fr)} Hz")
 #   - examine tuning curve &mdash; what do we see?
 # </div>
 
-tuning_curve_model = nap.compute_1d_tuning_curves_continuous(predicted_fr[:, np.newaxis], current, 15)
+tuning_curve_model = nap.compute_1d_tuning_curves_continuous(predicted_fr, current, 15)
 fig = workshop_utils.plotting.tuning_curve_plot(tuning_curve)
 fig.axes[0].plot(tuning_curve_model, color="tomato", label="glm")
 fig.axes[0].legend()
 
 # %%
 #
-# In addition to making that mismatch discussed earlier a little more obvious,
-# this tuning curve comparison also highlights that this model thinks the
-# firing rate will continue to grow as the injected current increases, which is
-# not reflected in the data.
+# In addition to making the mismatch at low and medium input values discussed earlier a
+# little more obvious, this tuning curve comparison also highlights that this model
+# thinks the firing rate will continue to grow as the injected current increases, which
+# is not reflected in the data.
 #
 # Viewing this plot also makes it clear that the model's tuning curve is
 # approximately exponential. We already knew that! That's what it means to be a
@@ -773,9 +771,6 @@ workshop_utils.plotting.plot_basis(window_size_sec=current_history_duration_sec)
 #   temporal dependencies, such as spike history or the history of input current in this
 #   example. In convolution mode, we must additionally specify the `window_size`, the
 #   length of the filters in bins.
-#
-# !!! warning
-#     How is this description? any other examples?
 
 basis = nmo.basis.RaisedCosineBasisLog(
     n_basis_funcs=10, mode="conv", window_size=current_history_duration,
@@ -799,7 +794,7 @@ basis = nmo.basis.RaisedCosineBasisLog(
 #
 # With this basis in hand, we can compress our input features:
 
-# under the hood, this convolves the filter bank visualized above with our input
+# under the hood, this convolves the input with the filter bank visualized above
 current_history = basis.compute_features(binned_current)
 print(current_history.shape)
 
@@ -829,8 +824,8 @@ workshop_utils.plotting.plot_current_history_features(binned_current, current_hi
 # that get progressively later and smoother. Let's step through that a bit more slowly.
 #
 # In the leftmost plot, we can see that the first feature almost perfectly tracks the
-# input. Looking at the basis function above, that makes sense: it reaches its max at 0
-# and quickly decays. This feature is thus a very slightly smoothed version of the
+# input. Looking at the basis function above, that makes sense: this function's max is
+# at 0 and quickly decays. This feature is thus a very slightly smoothed version of the
 # instantaneous current feature we were using before. In the middle plot, we can see
 # that the last feature has a fairly long lag compared to the current, and is a good
 # deal smoother. Looking at the rightmost plot, we can see that the other features vary
@@ -841,8 +836,8 @@ workshop_utils.plotting.plot_current_history_features(binned_current, current_hi
 # lag between the predictor and current increases. Let's see what this looks like when
 # we go to fit the model!
 #
-# We'll use the same model set-up as before, only changing the design matrix we pass to
-# the model:
+# We'll initialize and create the GLM object in the same way as before, only changing
+# the design matrix we pass to the model:
 
 history_model = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized(solver_name="LBFGS"))
 history_model.fit(current_history, count)
@@ -866,7 +861,7 @@ print(history_model.intercept_.shape)
 # Because we now have 10 features, but still only 1 neuron whose firing rate we're
 # predicting.
 #
-# Let's re-examine our predicted firing rate and see how the new history_model does:
+# Let's re-examine our predicted firing rate and see how the new model does:
 
 # all this code is the same as above
 history_pred_fr = history_model.predict(current_history)
@@ -890,7 +885,7 @@ print(f"Observed mean firing rate: {np.mean(count) / bin_size} Hz")
 print(f"Predicted mean firing rate (instantaneous current): {np.nanmean(predicted_fr)} Hz")
 print(f"Predicted mean firing rate (current history): {np.nanmean(smooth_history_pred_fr)} Hz")
 
-tuning_curve_history_model = nap.compute_1d_tuning_curves_continuous(smooth_history_pred_fr[:, np.newaxis], current, 15)
+tuning_curve_history_model = nap.compute_1d_tuning_curves_continuous(smooth_history_pred_fr, current, 15)
 fig = workshop_utils.plotting.tuning_curve_plot(tuning_curve)
 fig.axes[0].plot(tuning_curve_history_model, color="tomato", label="glm (current history)")
 fig.axes[0].plot(tuning_curve_model, color="tomato", linestyle='--', label="glm (instantaneous current)")
@@ -905,7 +900,7 @@ fig.axes[0].legend()
 #
 # Comparing the two models by examining their predictions is important, but you may also
 # want a number with which to evaluate and compare your models' performance. As
-# discussed earlier, the model optimizes log-likelihood to find the best-fitting
+# discussed earlier, the GLM optimizes log-likelihood to find the best-fitting
 # weights, and we can calculate this number using its `score` method:
 
 log_likelihood = model.score(predictor, count, score_type="log-likelihood")
@@ -927,10 +922,21 @@ print(f"log-likelihood (current history): {log_likelihood}")
 #     typical in many optimization contexts. `score` returns the real
 #     log-likelihood, however, and thus higher is better.
 #
-# Because it's un-normalized, however, the log-likelihood should not be
-# compared across datasets (because e.g., it won't account for difference in
-# noise levels). We provide the ability to compute the pseudo-$R^2$ for this
-# purpose:
+# Thus, we can see that, judging by the log-likelihood, the addition of the current
+# history to the model does slightly improve it. However, notice that we increased our
+# number of parameters tenfold, and only found a small improvement in performance.
+# Increasing the number of parameters makes you more susceptible to overfitting &mdash;
+# is this tradeoff worth it? To properly answer this question, one should split the
+# dataset into test and train sets, training the model on one subset of the data and
+# testing it on another to test the model's generalizability. We'll see a simple version
+# of this in the next exercise, and a more streamlined version, using `scikit-learn`'s
+# pipelining and cross-validation machinery, will be presented in an advanced exercise.
+#
+# ### Finishing up
+#
+# Note that, because the log-likelihood is un-normalized, it should not be compared
+# across datasets (because e.g., it won't account for difference in noise levels). We
+# provide the ability to compute the pseudo-$R^2$ for this purpose:
 
 r2 = model.score(predictor, count, score_type='pseudo-r2-Cohen')
 print(f"pseudo-r2 (instantaneous current): {r2}")
@@ -939,24 +945,9 @@ print(f"pseudo-r2 (current history): {r2}")
 
 # %%
 #
-# Thus, we can see that adding the current history does slightly improve the model, as
-# judged by either the log-likelihood or the pseudo-$R^2$. However, notice that we
-# increased our number of parameters tenfold, and only found a small improvement in
-# performance. Increasing the number of parameters makes you more susceptible to
-# overfitting &mdash; is this tradeoff worth it? To properly answer this question, one
-# should split the dataset into test and train sets, training the model on one subset of
-# the data and testing it on another to test the model's generalizability. We'll see a
-# simple version of this in the next exercise, and a more streamlined version, using
-# `scikit-learn`'s pipelining and cross-validation machinery, will be presented in an
-# advanced exercise.
-#
-# %%
-# ### Finishing up
-#
-# You might be wondering how to simulate spikes &mdash; the GLM is a LNP
-# model, but the firing rate is just the output of *LN*, its first two steps.
-# The firing rate is just the mean of a Poisson process, so we can pass it to
-# `jax.random.poisson`:
+# Additionally, you might be wondering how to simulate spikes &mdash; the GLM is a LNP
+# model, but the firing rate is just the output of *LN*, its first two steps. The firing
+# rate is just the mean of a Poisson process, so we can pass it to `jax.random.poisson`:
 #
 # <div class="notes">
 #   - Finally, let's look at spiking and scoring/metrics
@@ -973,7 +964,7 @@ spikes = jax.random.poisson(jax.random.PRNGKey(123), predicted_fr.values)
 # including spike history is often helpful, it can sometimes make simulations unstable:
 # if your GLM includes auto-regressive inputs (e.g., neurons are
 # connected to themselves or each other), simulations can sometimes can behave
-# poorly because of runaway excitation [^1][^2].
+# poorly because of runaway excitation [^1] [^2].
 #
 # [^1]: Arribas, Diego, Yuan Zhao, and Il Memming Park. "Rescuing neural spike train
 # models from bad MLE." Advances in Neural Information Processing Systems 33 (2020):
@@ -1011,31 +1002,27 @@ spikes = jax.random.poisson(jax.random.PRNGKey(123), predicted_fr.values)
 #
 # ### Model extensions
 #
-# Our model did not do a good job capturing the onset transience seen in the
-# data, and we could probably improve the match between the amplitudes of the
+# Even our extended model did not do a good job capturing the onset transience seen in
+# the data, and we could probably improve the match between the amplitudes of the
 # predicted firing rate and smoothed spike train. How would we do that?
 #
 # We could try adding the following inputs to the model, alone or together:
 #
-# - Spiking history: we know neurons have a refactory period (they are unable
-#   to spike a second time immediately after spiking), so maybe making the
-#   model aware of whether the neuron spiked recently could help capture the
-#   onset transience.
+# - Tinkering with the current history: we tried adding the current history to the
+#   model, but we only investigated one set of choices with the basis functions. What if
+#   we tried changing the duration of time we considered
+#   (`current_history_duration_sec`)? Different numbers of basis functions? A different
+#   choice for the `Basis` object altogether? What effects would these have on our model?
 #
-# - Current history: the model's input here is the current at the same moment
-#   as the spike, but that information is probably integrated over time. Maybe
-#   we can add additional time points.
+# - Spiking history: we know neurons have a refactory period (they are unable to spike a
+#   second time immediately after spiking), so maybe making the model aware of whether
+#   the neuron spiked recently could help better capture the onset transience.
 #
-# - More complicated tuning curve: as we saw with the tuning curve plots, this
-#   model implicitly assumes that the relationship between current and firing
-#   rate is exponential, which is close but not quite right. Maybe we can
-#   improve that.
-#
-# The proper way to add these in NeMoS makes use of `Basis` objects, which
-# we'll explore more in later tutorials. You can try the adding the spiking or
-# current history inputs without them (though the model won't do as well), or
-# return to this example after you've learned about `Basis` objects and how to
-# use them.
+# - More complicated tuning curve: as we saw with the tuning curve plots, neither model
+#   explored here quite accurately captures the relationship between the current and the
+#   firing rate. Can we improve that somehow? We saw that adding the current history
+#   changed this relationship, but we can also change it without including the history
+#   by using a basis object in `"eval"` mode.
 #
 # ## Data citation {.keep-text}
 #
