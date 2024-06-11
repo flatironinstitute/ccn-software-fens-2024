@@ -482,16 +482,25 @@ plt.legend()
 # %%
 # Let's extract and plot the rates
 # <div class="notes">
-# - Predict the rates and plot the results.
+# - Predict the rates
 # </div>
 rate_basis = model_basis.predict(conv_spk) * conv_spk.rate
 rate_history = model.predict(input_feature) * conv_spk.rate
 ep = nap.IntervalSet(start=8819.4, end=8821)
 
+# %%
+# <div class="notes">
+# - Plot the results.
+# </div>
+
+# {.keep-code}
 # plot the rates
 workshop_utils.plotting.plot_rates_and_smoothed_counts(
     neuron_count.restrict(ep),
-    {"Self-connection raw history":rate_history, "Self-connection bsais": rate_basis}
+    {
+        "Self-connection raw history":rate_history,
+        "Self-connection bsais": rate_basis
+    }
 )
 
 # %%
