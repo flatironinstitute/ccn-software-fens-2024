@@ -25,8 +25,8 @@ import numpy as np
 var1 = np.random.randn(100) # Variable 1
 tsp1 = np.arange(100) # The timesteps of variable 1
 
-var2 = np.random.randn(10, 3) # Variable 2
-tsp2 = np.arange(0, 100, 10) # The timesteps of variable 2
+var2 = np.random.randn(100, 3) # Variable 2
+tsp2 = np.arange(0, 100, 1) # The timesteps of variable 20
 col2 = ['potato', 'banana', 'tomato'] # The name of each columns of var2
 
 var3 = np.random.randn(1000, 4, 5) # Variable 3
@@ -117,11 +117,11 @@ print(tsgroup.rate)
 # %%
 # Now you realized the variable `tsd1` has some noise. The good signal is between 10 and 30 seconds and  50 and 100. 
 # 
-# **Question:** Can you create an `IntervalSet` object called `ep` and use it to restrict the variable `tsd1`?
+# **Question:** Can you create an `IntervalSet` object called `ep_signal` and use it to restrict the variable `tsd1`?
 
-ep = nap.IntervalSet(start=[10, 50], end=[30, 100])
+ep_signal = nap.IntervalSet(start=[10, 50], end=[30, 100])
 
-tsd1 = tsd1.restrict(ep)
+tsd1 = tsd1.restrict(ep_signal)
 
 # %%
 # You can print `tsd1` to check that the timestamps are in fact within `ep`.
@@ -156,51 +156,132 @@ print(np.mean(tsd2, 1))
 # In most cases, applying a numpy function will return a pynapple object if the time index is preserved.
 #
 # ## Slicing pynapple objects {.keep-text}
+#
+# Multiple methods exists to slice pynapple object. This parts reviews them.
+#
+# `IntervalSet` also behaves like numpy array.
+# **Question:** Can you extract the first and last epoch of `ep` in a new `IntervalSet`?
 
-#Inteval Set
-# TsGroup
+print(ep[[0,2]])
 
-# # Using Ts and TsGroup
+# %%
+# Sometimes you want to get a data point as close as possible in time to another timestamps.
+# **Question:** Using the `get` method, can you get the data point from `tsd3` as close as possible to the time 50.1 seconds?
 
-# Let's say you recorded neurons from thalamus and prefrontal cortex together.
-# """
+print(tsd3.get(50.1))
 
-# t_thl_0 = nap.Ts(t=np.sort(np.random.uniform(0, 100, 1000)))
-# t_thl_1 = nap.Ts(t=np.sort(np.random.uniform(0, 100, 2000)))
-# t_pfc_0 = nap.Ts(t=np.sort(np.random.uniform(0, 100, 3000)))
+# %%
+# ## `TsGroup` manipulation
+#
+# `TsGroup` is under the hood a python dictionnary but the capabilities have been extented.
+# **Question:** Can you run the following command `tsgroup['planet'] = ['mars', 'venus', 'saturn']`
 
-# """**Question 7**: Can you group them together in a TsGroup and add the location to each?"""
+tsgroup['planet'] = ['mars', 'venus', 'saturn']
 
-# spktrain = nap.TsGroup({0: t_thl_0, 1: t_thl_1 , 2: t_pfc_0}, location = np.array(['thl', 'thl', 'pfc']))
-# print(spktrain)
+# %%
+# **Question:** ... and print it?
 
-# """**Question 9**: Can you select only the neurons from the thalamus?"""
+print(tsgroup)
 
-# spktrain_thl = spktrain.getby_category('location')['thl']
-# print(spktrain_thl)
+# %%
+# After initialization, metainformation can only be added. Running the following command will raise an error: `tsgroup[3] = np.random.randn(3)`.
+#
+# From there, you can slice using the Index column (i.e. `tsgroup[0]`->nap.Ts, `tsgroup[[0,2]]` -> nap.TsGroup). 
+#
+# But more interestingly you can also slice using the metadata. There are multiple methods for it : `getby_category`, `getby_threshold`, `getby_intervals`.
+#
+# **Question:** Can you select only the elements of `tsgroup` with rate below 1Hz?
 
-# """**Question 10** : Can you bin the spike trains of the thalamus in bins of 1 second?"""
+tsgroup.getby_threshold("rate", 1, "<")
 
-# binSpk = spktrain_thl.count(1)
-# print(binSpk)
-
-# """**Question 10**: Can you select the epochs for which the multi unit spike count of thalamic neurons is above 30 spikes?"""
-
-# mua = np.sum(binSpk,1)
-# print(mua)
-
-# epHgMua = mua.threshold(30).time_support
-# print(epHgMua)
-
-# """**Question 11**: Can you restrict the spikes of the prefrontal neurons to the epochs previously defined?"""
-
-# spkPfcRes = spktrain.getby_category('location')['pfc'].restrict(epHgMua)
-# print(spkPfcRes)
-
-# """# Introduction to core functions
-
-# In this next experiment, we are recording a feature sampled at 100 Hz and one neuron.
-# """
+tsgroup[tsgroup.rate < 1.0]
 
 
 # %%
+# ## Core functions of pynapple
+#
+# This part focuses on the most important core functions of pynapple. 
+#
+# **Question:** Using the `count` function, can you count the number of events within 1 second bins for `tsgroup` over the `ep_signal` intervals?
+
+count = tsgroup.count(1, ep_signal)
+
+# %%
+# Pynapple works directly with matplotlib. Passing a time series object to `plt.plot` will display the figure with the correct time axis.
+#
+# **Question:** In two subplots, can you show the count and events over time?
+
+plt.figure()
+ax = plt.subplot(211)
+plt.plot(count, 'o-')
+plt.subplot(212, sharex=ax)
+plt.plot(tsgroup.restrict(ep_signal).to_tsd(), 'o')
+plt.show()
+
+# %%
+# From a set of timestamps, you want to assign them a set of values with the closest point in time of another time series.
+#
+# **Question:** Using the function `value_from`, can you assign values to `ts2` from the `tsd1` time series and call the output `new_tsd`?
+
+new_tsd = ts2.value_from(tsd1)
+
+# %%
+# **Question:** Can you plot together `tsd1`, `ts2` and `new_tsd`?
+
+plt.figure()
+plt.plot(tsd1)
+plt.plot(new_tsd, 'o-')
+plt.plot(ts2.fillna(0), 'o')
+plt.show()
+
+# %%
+# **Question:** 
+# One important aspect of data analysis is to bring data to the same size. Pynapple provides the `bin_average` function to downsample data. 
+# 
+# **Question:** Can you downsample `tsd2` to one time point every 5 seconds?
+
+new_tsd2 = tsd2.bin_average(5.0)
+
+# %%
+# **Question:** Can you plot the `tomato` column from `tsd2` as well as the downsampled version?
+
+plt.figure()
+plt.plot(tsd2['tomato'])
+plt.plot(new_tsd2['tomato'], 'o-')
+plt.show()
+
+# %%
+# For `tsd1`, you want to find all the epochs for which the value is above 0.0. Pynapple provides the function `threshold` to get 1 dimensional time series above or below a certain value.
+#
+# **Question: Can you print the epochs for which `tsd1` is above 0.0?** 
+
+ep_above = tsd1.threshold(0.0).time_support
+
+print(ep_above)
+
+# %%
+# **Question**: can you plot `tsd1` as well as the epochs for which `tsd1` is above 0.0?
+
+plt.figure()
+plt.plot(tsd1)
+plt.plot(tsd1.threshold(0.0), 'o-')
+[plt.axvspan(s, e, alpha=0.2) for s,e in ep_above.values]
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
