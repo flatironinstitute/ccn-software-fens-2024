@@ -138,7 +138,7 @@ print(tsd1.time_support)
 # %%
 # ## Numpy & pynapple {.strip-code}{.keep-text}
 #
-# Pynapple objects behaves very similarly like numpy array. They can be sliced withe the following syntax :
+# Pynapple objects behaves very similarly like numpy array. They can be sliced with the following syntax :
 # 
 #   `tsd[0:10] # First 10 elements`
 #
@@ -178,7 +178,7 @@ print(tsd3.get(50.1))
 # %%
 # ## `TsGroup` manipulation {.strip-code}{.keep-text}
 #
-# `TsGroup` is under the hood a python dictionnary but the capabilities have been extented.
+# `TsGroup` is under the hood a python dictionary but the capabilities have been extended.
 # **Question:** Can you run the following command `tsgroup['planet'] = ['mars', 'venus', 'saturn']`
 
 tsgroup['planet'] = ['mars', 'venus', 'saturn']
