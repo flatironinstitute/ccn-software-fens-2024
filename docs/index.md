@@ -10,6 +10,14 @@ Before the workshop, please try to follow the [setup](#setup) instructions below
 
 The presentations for this workshop can be found [at this page](https://neurorse.flatironinstitute.org/workshops/fens-2024).
 
+## This website
+
+This website contains rendered versions of the notebooks we will be working through during this workshop. During the workshop, attendees should look at the versions found under [For users](generated/for_users). These notebooks have some code pre-filled, as well as brief notes to help orient you. If you follow the [setup](#setup) instructions below, you will have editable copies of these notebooks on your laptop, and you are expected to follow along using these notebooks.
+
+If you miss something or lose progress, you can look into the [For presenters](generated/just_code) section, which includes the code blocks we will be writing during the exercise sections that you can then copy into your version.
+
+After the workshop, we encourage you to return and check out the [Full tutorials](generated/gallery) section, which, as the name implies, includes everything: explanatory text, code, and plots.
+
 ## Setup
 
 Before the workshop, please try to complete the following steps. If you are unable to do so, we will be in the hotel, Palais Saschen Coburg room IV, from 4 to 6pm on Saturday, June 22 to help. Please come by!
