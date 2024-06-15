@@ -198,7 +198,7 @@ plt.plot(decoded.restrict(ex_ep), label="decoded")
 plt.ylim(0, 2*np.pi)
 
 plt.subplot(212)
-plt.plot(spikes.restrict(ex_ep).to_tsd("order"), '|')
+plt.plot(spikes.restrict(ex_ep).to_tsd("pref_ang"), '|')
 plt.show()
 
 
