@@ -3,35 +3,44 @@
 
 ## Learning objectives {.keep-text}
 
-- Extract data from NWB file.
+- Loading a NWB file
+- Compute tuning curves
+- Decode neural activity
+- Compute correlograms
+
 
 The pynapple documentation can be found [here](https://pynapple-org.github.io/pynapple/).
 
 The documentation for objects and method of the core of pynapple is [here](https://pynapple-org.github.io/pynapple/reference/core/).
 
+The documentation for high level functions of pynapple is [here](https://pynapple-org.github.io/pynapple/reference/process/).
 
-Let's start by importing the pynapple package and matplotlib to see if everything is correctly installed. 
+Let's start by importing the pynapple package, matplotlib, numpy to see if everything is correctly installed. 
 If an import fails, you can do `!pip install pynapple matplotlib` in a cell to fix it.
 """
 # %%
 import pynapple as nap
 import matplotlib.pyplot as plt
 import workshop_utils
+import numpy as np
+
 
 # %%
 # ## Loading a NWB file {.keep-text,.strip-code}
 #
 # Pynapple commit to support NWB for data loading. 
-# If you are running
+# If you have installed the repository, you can run the following cell:
 
 path = workshop_utils.fetch_data("Mouse32-140822.nwb")
 
 print(path)
 
-# %%
+
+# %% 
 # If the above line didn't work, please run the following in a cell:
 #
 # ```
+# import tqdm, os, requests, math
 # path = "Mouse32-140822.nwb"
 # if path not in os.listdir("."):
 #     r = requests.get(f"https://osf.io/jb2gd/download", stream=True)
@@ -41,215 +50,235 @@ print(path)
 #             total=math.ceil(int(r.headers.get('content-length', 0))//block_size)):
 #             f.write(data)
 # ```
-
-
-# %%
 #
+# Pynapple provides the convenience function `nap.load_file` for loading a NWB file.
+#
+# **Question:** Can you open the NWB file giving the variable `path` to the function `load_file` and call the output `data`?
+
 data = nap.load_file(path)
 
 print(data)
 
 # %%
+# The content of the NWB file is not loaded yet. The object `data` behaves like a dictionnary.
 #
-
-
-# %%
-# ***
-# Parsing the data
-# ------------------
-#
-# The first step is to load the data and other relevant variables of interest
-
-data = nap.load_file(path)  # Load the NWB file for this dataset
-
-# %%
-# What does this look like ?
-print(data)
-
-# %%
-# ***
-# Head-Direction Tuning Curves
-# ------------------
-#
-# To plot Head-Direction Tuning curves, we need the spike timings and the orientation of the animal. These quantities are stored in the variables 'units' and 'ry'.
+# **Question:** Can you load the spike times from the NWB and call the variables `spikes`?
 
 spikes = data["units"]  # Get spike timings
-epochs = data["epochs"]  # Get the behavioural epochs (in this case, sleep and wakefulness)
-angle = data["ry"]  # Get the tracked orientation of the animal
-
 
 # %%
-# What does this look like ?
+# **Question:** And print it?
+
 print(spikes)
 
 # %%
-# Here, rate is the mean firing rate of the unit. Location indicates the brain region the unit was recorded from, and group refers to the shank number on which the cell was located.
+# There are a lot of neurons. The neurons that interest us are the neurons labeled `adn`. 
 #
-# This dataset contains units recorded from the anterior thalamus. Head-direction (HD) cells are found in the anterodorsal nucleus of the thalamus (henceforth referred to as ADn). Units were also recorded from nearby thalamic nuclei in this animal. For the purposes of our tutorial, we are interested in the units recorded in ADn. We can restrict ourselves to analysis of these units rather easily, using Pynapple.
+# **Question:** Using the slicing method of your choice (`getby_category` method or boolean indexing), can you select only the neurons in `adn` that are above 1 Hz firing rate?
 
-spikes_adn = spikes.getby_category("location")["adn"]  # Select only those units that are in ADn
+spikes = spikes[(spikes.location=='adn') & (spikes.rate>1.0)]
+
+print(spikes)
 
 # %%
-# What does this look like ?
-print(spikes_adn)
+# The NWB file contains other informations about the recording. `ry` contains the value of the head-direction of the animal over time. 
+# 
+# **Question:** Can you extract the angle of the animal in a variable called `angle` and print it?
+
+angle = data["ry"]
+print(angle)
 
 # %%
-# Let's compute some head-direction tuning curves. To do this in Pynapple, all you need is a single line of code!
+# But are the data actually loaded ... or not?
 #
-# Plot firing rate of ADn units as a function of heading direction, i.e. a head-direction tuning curve
+# **Question:** Can you print the underlying data array of `angle`?
+
+print(angle.d)
+
+# %%
+# The animal was recorded during wakefulness and sleep. 
+#
+# **Question:** Can you extract the behavioral intervals in a variable called `epochs`?
+
+epochs = data["epochs"]
+
+print(epochs)
+
+# %%
+# NWB file can save intervals with multiple labels. By default, pynapple will group epochs with the same label in one `IntervalSet` and return a dictionnary of `IntervalSet`. 
+#
+
+# {.keep-code}
+wake_ep = epochs['wake']
+
+# %%
+# ## Compute tuning curves {.strip-code,.keep-text}
+# Now that we have spikes and a behavioral feature (i.e. head-direction), we would like to compute the firing rate of neurons as a function of the variable `angle` during `wake_ep`.
+# To do this in pynapple, all you need is a single line of code!
+#
+# **Question:** can you compute the firing rate of ADn units as a function of heading direction, i.e. a head-direction tuning curve and call the variable `tuning_curves`?
 
 tuning_curves = nap.compute_1d_tuning_curves(
-    group=spikes_adn, 
+    group=spikes, 
     feature=angle, 
     nb_bins=61, 
-    ep = epochs['wake'],
+    ep = angle.time_support,
     minmax=(0, 2 * np.pi)
     )
 
 # %%
-# What does this look like ?
-print(tuning_curves)
+# **Question:** Can you plot some tuning curves?
 
-# %%
-# Each row indicates an angular bin (in radians), and each column corresponds to a single unit. Let's compute the preferred angle quickly as follows:
-
-pref_ang = tuning_curves.idxmax()
-
-
-# %%
-# For easier visualization, we will colour our plots according to the preferred angle of the cell. To do so, we will normalize the range of angles we have, over a colourmap.
-
-norm = plt.Normalize()  # Normalizes data into the range [0,1]
-color = plt.cm.hsv(norm([i / (2 * np.pi) for i in pref_ang.values]))  # Assigns a colour in the HSV colourmap for each value of preferred angle
-color = pd.DataFrame(index=pref_ang.index, data = color, columns = ['r', 'g', 'b', 'a'])
-
-# %%
-# To make the tuning curves look nice, we will smooth them before plotting, using this custom function:
-
-from scipy.ndimage import gaussian_filter1d
-def smoothAngularTuningCurves(tuning_curves, sigma=2):
-
-    tmp = np.concatenate((tuning_curves.values, tuning_curves.values, tuning_curves.values))
-    tmp = gaussian_filter1d(tmp, sigma=sigma, axis=0)
-
-    return pd.DataFrame(index = tuning_curves.index,
-        data = tmp[tuning_curves.shape[0]:tuning_curves.shape[0]*2], 
-        columns = tuning_curves.columns
-        )
-
-
-
-# %%
-# Therefore, we have:
-
-smoothcurves = smoothAngularTuningCurves(tuning_curves, sigma=3)
-
-# %%
-# What does this look like? Let's plot the tuning curves!
-
-plt.figure(figsize=(12, 9))
-for i, n in enumerate(pref_ang.sort_values().index.values):
-    plt.subplot(8, 4, i + 1, projection='polar')  # Plot the curves in 8 rows and 4 columns
-    plt.plot(
-        smoothcurves[n], color=color.loc[n]
-    )  # Colour of the curves determined by preferred angle    
-    plt.xlabel("Angle (rad)")  # Angle in radian, on the X-axis
-    plt.ylabel("Firing Rate (Hz)")  # Firing rate in Hz, on the Y-axis
-    plt.xticks([])
+plt.figure()
+plt.subplot(221)
+plt.plot(tuning_curves.iloc[:,0])
+plt.subplot(222,projection='polar')
+plt.plot(tuning_curves.iloc[:,0])
+plt.subplot(223)
+plt.plot(tuning_curves.iloc[:,1])
+plt.subplot(224,projection='polar')
+plt.plot(tuning_curves.iloc[:,1])
 plt.show()
 
 # %%
-# Awesome!
+# Most of those neurons are head-directions neruons.
+# 
+# 
 
 # %%
-# ***
-# Decoding
-# ------------------
+# The next cell allows us to get a quick estimate of the neurons's preferred direction.
+
+# {.keep-code}
+pref_ang = tuning_curves.idxmax()
+
+# %%
+# **Question:** Can you add it to the metainformation of `spikes`?
+
+spikes['pref_ang'] = pref_ang
+
+# %%
+# This index maps a neuron to a preferred direction between 0 and 360 degrees.
 #
-# Now that we have HD tuning curves, we can go one step further. Using only the population activity of ADn units, we can decode the direction the animal is looking in. We will then compare this to the real head direction of the animal, and discover that population activity in the ADn indeed codes for HD.
+# **Question:** Can you plot the spiking activity of the neurons based on their preferred direction as well as the head-direction of the animal?
+# For the sake of visibility, you should restrict the data to the following epoch : `ex_ep = nap.IntervalSet(start=8910, end=8960)`.
+
+ex_ep = nap.IntervalSet(start=8910, end=8960)
+
+
+plt.figure()
+plt.subplot(211)
+plt.plot(angle.restrict(ex_ep))
+plt.ylim(0, 2*np.pi)
+
+plt.subplot(212)
+plt.plot(spikes.restrict(ex_ep).to_tsd("pref_ang"), '|')
+plt.show()
+
+# %%
+# ## Decode neural activity {.strip-code,.keep-text}
 #
-# To decode the population activity, we will be using a Bayesian Decoder as implemented in Pynapple. Just a single line of code!
+# Population activity clearly codes for head-direction. Can we use the spiking activity of the neurons to infer the current heading of the animal? The process is called bayesian decoding.
+# 
+# **Question:** Using the right pynapple function, can you compute the decoded angle from the spiking activity?
 
 decoded, proba_feature = nap.decode_1d(
     tuning_curves=tuning_curves,
-    group=spikes_adn,
-    ep=epochs["wake"],
+    group=spikes,
+    ep=wake_ep,
     bin_size=0.1,  # second
-    feature=angle,
 )
 
 # %%
-# What does this look like ?
-
-print(decoded)
-
-# %%
-# The variable 'decoded' indicates the most probable angle in which the animal was looking. There is another variable, 'proba_feature' that denotes the probability of a given angular bin at a given time point. We can look at it below:
-
-print(proba_feature.as_dataframe())
-
-# %%
-# Each row of this pandas DataFrame is a time bin, and each column is an angular bin. The sum of all values in a row add up to 1.
-#
-# Now, let's plot the raster plot for a given period of time, and overlay the actual and decoded HD on the population activity.
-
-ep = nap.IntervalSet(
-    start=10717, end=10730
-)  # Select an arbitrary interval for plotting
+# **Question:** ... and display the decoded angle next to the true angle?
 
 plt.figure()
-plt.rc("font", size=12)
-for i, n in enumerate(spikes_adn.keys()):
-    plt.plot(
-        spikes[n].restrict(ep).fillna(pref_ang[n]), "|", color=color.loc[n]
-    )  # raster plot for each cell
-plt.plot(
-    decoded.restrict(ep), "--", color="grey", linewidth=2, label="decoded HD"
-)  # decoded HD
-plt.legend(loc="upper left")
+plt.subplot(211)
+plt.plot(angle.restrict(ex_ep))
+plt.plot(decoded.restrict(ex_ep), label="decoded")
+plt.ylim(0, 2*np.pi)
+
+plt.subplot(212)
+plt.plot(spikes.restrict(ex_ep).to_tsd("order"), '|')
+plt.show()
+
+
 
 # %%
-# From this plot, we can see that the decoder is able to estimate the head-direction based on the population activity in ADn. Amazing!
+# ## Compute correlograms {.strip-code,.keep-text}
 #
-# What does the probability distribution in this example event look like?
-# Ideally, the bins with the highest probability will correspond to the bins having the most spikes. Let's plot the probability matrix to visualize this.
+# We see that some neurons have a correlated activity. Can we measure it?
+#
+# **Question:**Can you compute cross-correlograms during wake for all pairs of neurons and call it `cc_wake`?
 
-smoothed = scipy.ndimage.gaussian_filter(
-    proba_feature, 1
-)  # Smoothening the probability distribution
+cc_wake = nap.compute_crosscorrelogram(spikes, 0.2, 20.0, ep=wake_ep)
 
-# Create a DataFrame with the smoothed distribution
-p_feature = pd.DataFrame(
-    index=proba_feature.index.values,
-    columns=proba_feature.columns.values,
-    data=smoothed,
-)
-p_feature = nap.TsdFrame(p_feature)  # Make it a Pynapple TsdFrame
+# %%
+# **Question:** can you plot the cross-correlogram during wake of 2 neurons firing for the same direction?
+index = spikes.keys()
+
 
 plt.figure()
-plt.plot(
-    angle.restrict(ep), "w", linewidth=2, label="actual HD", zorder=1
-)  # Actual HD, in white
-plt.plot(
-    decoded.restrict(ep), "--", color="grey", linewidth=2, label="decoded HD", zorder=1
-)  # Decoded HD, in grey
+plt.subplot(121)
+plt.plot(tuning_curves[7])
+plt.plot(tuning_curves[20])
+plt.subplot(122)
+plt.plot(cc_wake[(7, 20)])
+plt.show()
 
-# Plot the smoothed probability distribution
-plt.imshow(
-    np.transpose(p_feature.restrict(ep).values),
-    aspect="auto",
-    interpolation="bilinear",
-    extent=[ep["start"][0], ep["end"][0], 0, 2 * np.pi],
-    origin="lower",
-    cmap="viridis",
-)
 
-plt.xlabel("Time (s)")  # X-axis is time in seconds
-plt.ylabel("Angle (rad)")  # Y-axis is the angle in radian
-plt.colorbar(label="probability")
 
 # %%
-# From this probability distribution, we observe that the decoded HD very closely matches the actual HD. Therefore, the population activity in ADn is a reliable estimate of the heading direction of the animal.
+# **Question:** can you plot the cross-correlogram during wake of 2 neurons firing for opposite directions?
+index = spikes.keys()
+
+
+plt.figure()
+plt.subplot(121)
+plt.plot(tuning_curves[7])
+plt.plot(tuning_curves[26])
+plt.subplot(122)
+plt.plot(cc_wake[(7, 26)])
+plt.show()
+
+# %%
+# Pairwise correlation were computed during wakefulness. The activity of the neurons was also recorded during sleep.
 #
-# I hope this tutorial was helpful. If you have any questions, comments or suggestions, please feel free to reach out to the Pynapple Team!
+# **Question:** can you compute the cross-correlograms during sleep?
+
+cc_sleep = nap.compute_crosscorrelogram(spikes, 0.02, 1.0, ep=epochs['sleep'])
+
+# %%
+# **Question:** can you display the cross-correlogram for wakefulness and sleep of the same pairs of neurons?
+
+plt.figure()
+plt.subplot(131, projection='polar')
+plt.plot(tuning_curves[7])
+plt.plot(tuning_curves[20])
+plt.subplot(132)
+plt.plot(cc_wake[(7, 20)])
+plt.subplot(133)
+plt.plot(cc_sleep[(7, 20)])
+plt.show()
+ 
+# %%
+
+plt.figure()
+plt.subplot(131, projection='polar')
+plt.plot(tuning_curves[7])
+plt.plot(tuning_curves[26])
+plt.subplot(132)
+plt.plot(cc_wake[(7, 26)])
+plt.subplot(133)
+plt.plot(cc_sleep[(7, 26)])
+plt.show()
+
+
+# %%
+
+
+
+
+
+
+
 
