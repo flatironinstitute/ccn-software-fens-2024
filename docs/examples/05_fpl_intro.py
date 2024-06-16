@@ -113,7 +113,7 @@ image_graphic.reset_vmin_vmax()
 # **Question:** Can you change the data of the image to be random data of the same shape? Hint: Use `np.random.rand()`
 # to create the new data.
 
-# create new random dat of the same shape as the original image
+# create new random data of the same shape as the original image
 new_data = np.random.rand(*image_graphic.data.value.shape)
 
 # update the data
