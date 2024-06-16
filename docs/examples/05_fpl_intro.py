@@ -158,25 +158,56 @@ fig_v.add_animations(update_data)
 fig_v.show(sidecar=True)
 
 # %%
-# ### Adding another animation function {.strip-code,.keep-text}
-#
-# **Question:** Can you add an animation function that toggles the colormap of the image between "plasma" and "hsv"?
-
-# define a function to toggle the colormap
-def update_cmap(plot_instance):
-    if plot_instance[0,0]["random-image"].cmap == "plasma":
-        plot_instance[0,0]["random-image"].cmap = "hsv"
-    else:
-        plot_instance[0,0]["random-image"].cmap = "plasma"
-
-# add the animation function
-fig_v.add_animations(update_cmap)
-
-# %%
 #
 
 # close the plot
 fig_v.close()
+
+# %%
+# ### Image Practice {.strip-code,.keep-text}
+#
+# **Question:** Can you do the following:
+#
+# - create a new plot called `practice_fig`
+#
+# - add an `ImageGraphic` with the following characteristics to the figure:
+#
+#      - random data in the shape (512, 512)
+#
+#      - colormap "viridis"
+#
+#      - name "random-image"
+#
+# - set the top-left and bottom-right quadrants of the data to 1 using slicing :D
+#
+# - add an animation function that updates the top-right and bottom-left quadrants with new random data
+
+
+practice_fig = fpl.Figure()
+
+data = np.random.rand(512, 512)
+
+practice_fig[0,0].add_image(data=data, name="random-image", cmap="viridis")
+
+# set the top-left and bottom-right quadrants of the data to 1
+practice_fig[0,0]["random-image"].data[:256, :256] = 1 # top-left
+practice_fig[0,0]["random-image"].data[256:, 256:] = 1 # bottom-right
+
+# define an animation function to toggle the data
+def update_data(plot_instance):
+    # set the top-right and bottom-left quadrants with new random data
+    plot_instance[0,0]["random-image"].data[:256, 256:] = np.random.rand(256, 256) # bottom-left
+    plot_instance[0,0]["random-image"].data[256:, :256] = np.random.rand(256, 256) # top-right
+
+# add the animation function
+practice_fig.add_animations(update_data)
+
+practice_fig.show()
+
+# %%
+
+# close the plot
+practice_fig.close()
 
 # %%
 # ## 2D Line Plots
