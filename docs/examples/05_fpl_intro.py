@@ -83,6 +83,9 @@ image_graphic.cmap = "viridis"
 
 print(image_graphic.data.value.shape)
 
+# %%
+#
+
 image_graphic.data[::15, :] = 1
 image_graphic.data[:, ::15] = 1
 
@@ -103,7 +106,7 @@ image_graphic.vmax = 150
 image_graphic.reset_vmin_vmax()
 
 # %%
-# ### Change graphic properties {.strip-code}{.keep-text}
+# ### Change graphic properties {.strip-code,.keep-text}
 #
 # Now that we have a better idea of how graphic properties can be dynamically changed, let's practice :D
 #
@@ -117,7 +120,7 @@ new_data = np.random.rand(*image_graphic.data.value.shape)
 image_graphic.data = new_data
 
 # %%
-# **Question:** Can you change the colormap of the data? See [here](https://matplotlib.org/stable/gallery/color/colormap_reference.html) for a list of colormaps.
+# **Question:** Can you change the colormap of the image? See [here](https://matplotlib.org/stable/gallery/color/colormap_reference.html) for a list of colormaps.
 
 image_graphic.cmap = "hsv"
 
@@ -128,7 +131,7 @@ image_graphic.cmap = "hsv"
 fig.close()
 
 # %%
-# ### Image updates {.keep-code}{.keep-text}
+# ### Image updates {.keep-code,.keep-text}
 # This examples show how you can define animation functions that run on every render cycle.
 
 # create another `Figure` instance
@@ -155,7 +158,7 @@ fig_v.add_animations(update_data)
 fig_v.show(sidecar=True)
 
 # %%
-# ### Adding another animation function {.strip-code}{.keep-text}
+# ### Adding another animation function {.strip-code,.keep-text}
 #
 # **Question:** Can you add an animation function that toggles the colormap of the image between "plasma" and "hsv"?
 
@@ -170,12 +173,14 @@ def update_cmap(plot_instance):
 fig_v.add_animations(update_cmap)
 
 # %%
-# Close the plot {.keep-code}
+#
+
+# close the plot
 fig_v.close()
 
 # %%
 # ## 2D Line Plots
-
+#
 # This example plots a sine wave, cosine wave, and ricker wavelet and demonstrates how **Graphic Properties** can be
 # modified by slicing!
 
@@ -245,20 +250,20 @@ bool_key = [True, True, True, False, False] * 20
 sinc_graphic.data[bool_key, 1] = 7  # y vals to 1
 
 # %%
-# #### 2D Lines Practice {.strip-code}{.keep-text}
+# #### 2D Lines Practice {.strip-code,.keep-text}
 #
-# **Question:** Can you change the colormap of the sine graphic to "hsv"?
+# **Question:** Can you change the colormap of the sine_graphic to "hsv"?
 
 sine_graphic.cmap = "hsv"
 
 # %%
-# **Question:** Can you change the color of first 50 data points of the sinc graphic to green?
+# **Question:** Can you change the color of first 50 data points of the sinc_graphic to green?
 
 sinc_graphic.colors[:50] = "g"
 
 # %%
-# **Question:** Can you to change the last 50 data points of the cosine graphic to equal the last 50 points of the
-# sine graphic?
+# **Question:** Can you to change the last 50 data points of the cosine_graphic to equal the last 50 points of the
+# sine_graphic?
 
 cosine_graphic.data[50:] = sine_graphic.data[50:]
 
@@ -277,6 +282,7 @@ cosine_graphic.data[50:] = sine_graphic.data[50:]
 #```
 
 # %%
+# Examples:
 
 # will print event data when the color of the cosine graphic changes
 @cosine_graphic.add_event_handler("colors")
@@ -284,6 +290,7 @@ def callback_func(ev):
     print(ev.info)
 
 # %%
+
 # when the cosine graphic colors change, will also update the sine_graphic colors
 def change_colors(ev):
    sine_graphic.colors[ev.info["key"]] = "w"
@@ -297,9 +304,158 @@ cosine_graphic.colors[:10] = "g"
 fig_lines.close()
 
 # %%
-# #### More 2D Lines Practice {.strip-code}{.keep-text}
+# ### More Events :D
 #
-# **Question:** Can you add an event handler (using either method) to update ?
+
+# generate some circles
+def make_circle(center, radius: float, n_points: int = 75) -> np.ndarray:
+    theta = np.linspace(0, 2 * np.pi, n_points)
+    xs = radius * np.sin(theta)
+    ys = radius * np.cos(theta)
+
+    return np.column_stack([xs, ys]) + center
+
+
+spatial_dims = (50, 50)
+
+# this makes 16 circles, so we can create 16 cmap values, so it will use these values to set the
+# color of the line based by using the cmap as a LUT with the corresponding cmap_value
+circles = list()
+for center in product(range(0, spatial_dims[0], 15), range(0, spatial_dims[1], 15)):
+    circles.append(make_circle(center, 5, n_points=75))
+
+# things like class labels, cluster labels, etc.
+cmap_transform = [
+    0, 1, 1, 2,
+    7, 0, 1, 1,
+    2, 2, 8, 3,
+    1, 9, 1, 5
+]
+
+# %%
+
+fig = fpl.Figure()
+
+circles_graphic = fig[0,0].add_line_collection(data=circles, cmap="tab10", cmap_transform=cmap_transform, thickness=10)
+
+# %%
+
+fig.show()
+
+# %%
+
+# get graphic that is clicked and change the color
+def click_event(ev):
+    ev.graphic.colors = "w"
+
+# %%
+
+# for each circle in the collection, add click event handler
+circles_graphic.add_event_handler(click_event, "click")
+
+# %%
+# #### Events Practice {.keep-text,.strip-code}
+#
+# **Question:** Can you add another event handler (using either method) to the circles_graphic that will change the
+# colormap of first 50 points in the circle when the colors of one of the circles changes?
+
+@circles_graphic.add_event_handler("colors")
+def change_cmap(ev):
+    ev.graphic.cmap[:50] = "hsv"
+
+# %%
+
+# close the plot
+fig.close()
+
+# %%
+# ## Selectors
+#
+# ### `LinearSelector`
+
+fig = fpl.Figure()
+
+# same sine data from before
+sine_graphic = fig[0, 0].add_line(data=sine, colors="w")
+
+# add a linear selector the sine wave
+selector = sine_graphic.add_linear_selector()
+
+# fastplotlib LinearSelector can make an ipywidget slider and return it :D
+ipywidget_slider = selector.make_ipywidget_slider()
+ipywidget_slider.description = "slider"
+
+
+fig[0, 0].auto_scale()
+fig.show(add_widgets=[ipywidget_slider], maintain_aspect=False)
+
+# %%
+
+# change the color of the sine wave based on the location of the linear selector
+@selector.add_event_handler("selection")
+def set_color_at_index(ev):
+    # get the selected index
+    ix = ev.get_selected_index()
+    # get the sine graphic
+    g = ev.graphic.parent
+    # change the color of the sine graphic at the index of the selector
+    g.colors[ix] = "green"
+
+# %%
+
+# close the plot
+fig.close()
+
+# %%
+# ### `LinearRegionSelector`
+
+fig = fpl.Figure((2, 1))
+
+# data to plot
+xs = np.linspace(0, 10* np.pi, 1_000)
+sine = np.sin(xs)
+sine += 100
+
+# make sine along x axis
+sine_graphic_x = fig[0, 0].add_line(np.column_stack([xs, sine]), offset=(10, 0, 0))
+
+# add a linear region selector
+ls_x = sine_graphic_x.add_linear_region_selector()  # default axis is "x"
+
+# get the initial selected date of the linear region selector
+zoomed_init = ls_x.get_selected_data()
+
+# make a line graphic for displaying zoomed data
+zoomed_x = fig[1, 0].add_line(zoomed_init)
+
+@ls_x.add_event_handler("selection")
+def set_zoom_x(ev):
+    """sets zoomed x selector data"""
+    # get the selected data
+    selected_data = ev.get_selected_data()
+
+    # remove the current zoomed data
+    # and update with new selected data
+    global zoomed_x
+    fig[1,0].remove_graphic(zoomed_x)
+    zoomed_x = fig[1,0].add_line(selected_data)
+    fig[1, 0].auto_scale()
+
+fig.show(maintain_aspect=False)
+
+# %%
+
+# close the plot
+fig.close()
+
+# %%
+# ## For more examples, please see our gallery:
+
+# %%
+# ## For a more comprehensive intro to the library, please see our guide:
+
+
+
 
 
 
