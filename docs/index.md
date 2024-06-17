@@ -50,6 +50,8 @@ Before the workshop, please try to complete the following steps. If you are unab
 
 If `check_setup.py` tells you setup was successful, then you're good to go. Otherwise, please come to the installation help session in the hotel, Palais Saschen Coburg room IV, on Saturday, so everyone is ready to get started Sunday morning.
 
+After doing the above, the `data/` and `notebooks/` directories within your local copy of the `ccn-software-fens-2024` repository will contain the NWB files and jupyter notebooks, respectively.
+
 ## Converting your data to NWB
 
 If you plan to bring your own data to the Monday afternoon session, please convert it to the [NWB format](https://pynwb.readthedocs.io/). It will make it much easier to load it with pynapple. We recommend the following tools to convert : [NeuroConv](https://neuroconv.readthedocs.io/en/main/) or [NWBGuide](https://nwb-guide.readthedocs.io/en/latest/). If you have any questions about NWB, please consider asking them on the [NWB Helpdesk](https://github.com/NeurodataWithoutBorders/helpdesk/discussions).
