@@ -38,7 +38,7 @@ var3 = np.random.randn(1000, 4, 5) # Variable 3
 tsp3 = np.arange(0, 100, 0.1) # The timesteps of variable 3
 
 random_times_1 = np.array([3.14, 37.0, 42.0])
-random_times_2 = np.array([10.0, 30, 50, 70])
+random_times_2 = np.array([10, 25, 50, 70])
 random_times_3 = np.sort(np.random.uniform(10, 80, 100))
 
 starts_1 = np.array([10000, 60000, 90000]) # starts of an epoch in `ms`
@@ -147,6 +147,7 @@ print(tsd1.time_support)
 #   `tsd = tsd + 1`
 #
 # Finally numpy functions works directly. Let's imagine `tsd3` is a movie with frame size (4,5).
+#
 # **Question:** Can you compute the average frame along the time axis using `np.mean` and print the result?
 
 print(np.mean(tsd3, 0))
@@ -165,12 +166,14 @@ print(np.mean(tsd2, 1))
 # Multiple methods exists to slice pynapple object. This parts reviews them.
 #
 # `IntervalSet` also behaves like numpy array.
+#
 # **Question:** Can you extract the first and last epoch of `ep` in a new `IntervalSet`?
 
 print(ep[[0,2]])
 
 # %%
 # Sometimes you want to get a data point as close as possible in time to another timestamps.
+#
 # **Question:** Using the `get` method, can you get the data point from `tsd3` as close as possible to the time 50.1 seconds?
 
 print(tsd3.get(50.1))
@@ -179,6 +182,7 @@ print(tsd3.get(50.1))
 # ## `TsGroup` manipulation {.strip-code,.keep-text}
 #
 # `TsGroup` is under the hood a python dictionnary but the capabilities have been extented.
+#
 # **Question:** Can you run the following command `tsgroup['planet'] = ['mars', 'venus', 'saturn']`
 
 tsgroup['planet'] = ['mars', 'venus', 'saturn']
@@ -308,7 +312,17 @@ nap.nap_config.set_backend("jax")
 new_banana = tsd2['banana'].convolve(kernel)
 
 
+# %%
+# ## Important
+#
+# **Question:** Does this work?
+# 
+# If not, please ask a TA.
 
+# {.keep-code}
+import workshop_utils
+path = workshop_utils.fetch_data("Mouse32-140822.nwb")
+print(path)
 
 
 
