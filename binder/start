@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export FENS_DATA_DIR='/home/jovyan/data';
+exec "$@"
