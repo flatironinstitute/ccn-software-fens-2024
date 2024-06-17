@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# this code runs before jupyter everytime. in this case, we could also have
+# modified the corresponding jupyter kernel.json file (in postBuild), but this
+# seems simpler
+
+# see
+# https://mybinder.readthedocs.io/en/latest/using/config_files.html#start-run-code-before-the-user-sessions-starts
+# for details
+export FENS_DATA_DIR='/home/jovyan/data';
+exec "$@"
