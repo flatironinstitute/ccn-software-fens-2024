@@ -278,7 +278,7 @@ second_half = nap.IntervalSet(start + duration / 2, end)
 
 
 # define the GLM object
-model = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
+model = nmo.glm.GLM()
 
 # Fit over the training epochs
 model.fit(
@@ -310,7 +310,7 @@ plt.legend()
 # </div>
 # Fit on the test set.
 
-model_second_half = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
+model_second_half = nmo.glm.GLM()
 model_second_half.fit(
     input_feature.restrict(second_half),
     neuron_count.restrict(second_half)
@@ -411,9 +411,7 @@ workshop_utils.plotting.plot_convolved_counts(
 # </div>
 
 
-model_basis = nmo.glm.GLM(
-    regularizer=nmo.regularizer.UnRegularized("LBFGS")
-)
+model_basis = nmo.glm.GLM()
 # use restrict on interval set training
 model_basis.fit(
     conv_spk.restrict(first_half),
@@ -540,10 +538,17 @@ print(f"Convolved count shape: {convolved_count.shape}")
 # - Fit a `PopulationGLM`
 # - Print the shape of the estimated coefficients.
 # </div>
+#
+# !!! note "Ridge Regularization"
+#     Ridge regularization is a common practice in regression problems for preventing over-fitting. It works
+#     by biasing the parameters towards smaller values. Consider using Ridge regularization whenever the
+#     parameter space is large or the number of samples is limited. Deciding the type and the amount regularization
+#     is ang
+#
 
 model = nmo.glm.PopulationGLM(
-    regularizer=nmo.regularizer.Ridge(regularizer_strength=0.1, solver_name="LBFGS"),
-    ).fit(convolved_count, count)
+    regularizer=nmo.regularizer.Ridge("LBFGS", regularizer_strength=0.1)
+).fit(convolved_count, count)
 
 print(f"Model coefficients shape: {model.coef_.shape}")
 
@@ -626,3 +631,4 @@ print(responses.shape)
 
 # {.keep-code}
 workshop_utils.plotting.plot_coupling(responses, tuning)
+
