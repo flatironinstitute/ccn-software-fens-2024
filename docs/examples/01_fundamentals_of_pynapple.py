@@ -275,7 +275,7 @@ plt.show()
 
 
 # %%
-# ## Extra : pynajax
+# ## Extra : pynajax {.strip-code,.keep-text}
 #
 # Currently, pynapple uses `numba` for accelerating functions. For example, the pynapple convolution function works on cpu with numba by default.
 #
