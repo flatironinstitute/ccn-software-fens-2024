@@ -167,3 +167,4 @@ cython_debug/
 docs/just_code
 docs/for_users
 notebooks/
+data/

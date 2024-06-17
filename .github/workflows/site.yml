@@ -33,7 +33,11 @@ jobs:
         python-version: '3.11'
 
     - name: Install python dependencies
-      run: pip install .
+      run: |
+        pip install .
+        # for some reason, pynajax being present causes mkdocs build to fail,
+        # but only mkdocs build, and only on the github action
+        pip uninstall pynajax -y
 
     - name: preprocess
       run: |

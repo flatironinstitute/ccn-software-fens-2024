@@ -138,7 +138,7 @@ print(tsd1.time_support)
 # %%
 # ## Numpy & pynapple {.strip-code,.keep-text}
 #
-# Pynapple objects behaves very similarly like numpy array. They can be sliced withe the following syntax :
+# Pynapple objects behaves very similarly like numpy array. They can be sliced with the following syntax :
 # 
 #   `tsd[0:10] # First 10 elements`
 #

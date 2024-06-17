@@ -59,12 +59,12 @@ repo_dir = pathlib.Path(__file__).parent.parent / 'notebooks'
 gallery_dir = pathlib.Path(__file__).parent.parent / 'docs' / 'examples'
 nbs = list(repo_dir.glob('*ipynb'))
 gallery_scripts = list(gallery_dir.glob('*py'))
-if len(nbs) == len(gallery_scripts):
+missing_nb = [f.stem for f in gallery_scripts
+              if not any([f.stem == nb.stem.replace('_users', '') for nb in nbs])]
+if len(missing_nb) == 0:
     print(":white_check_mark: All notebooks found")
 else:
     errors += 1
-    missing_nb = [f.stem for f in gallery_scripts
-                  if not any([f.stem == nb.stem.replace('_users', '') for nb in nbs])]
     print(f":x: Following notebooks missing: {', '.join(missing_nb)}")
     print("   Did you run [bold]python scripts/setup.py[/bold]?")
 
