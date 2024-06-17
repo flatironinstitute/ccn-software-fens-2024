@@ -41,6 +41,9 @@ jobs:
         # download data first, so we don't have a race for each notebook
         python src/workshop_utils/fetch.py
 
+    - name: Setup upterm session
+      uses: lhotari/action-upterm@v1
+
     - name: Build site
       # In order to reduce interval tqdm updates (so that rendered output is less
       # messy), set env variable `TQDM_MININTERVAL=5`.
