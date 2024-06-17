@@ -37,7 +37,7 @@ jobs:
         pip install .
         # for some reason, pynajax being present causes mkdocs build to fail,
         # but only mkdocs build, and only on the github action
-        pip uninstall pynajax
+        pip uninstall pynajax -y
 
     - name: preprocess
       run: |
