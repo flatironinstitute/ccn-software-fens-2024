@@ -3,5 +3,5 @@
 CONDA_OVERRIDE_CUDA="12.3" conda env update -p $NB_PYTHON_PREFIX --file environment-cuda.yml
 conda activate fens2024
 conda clean --all -y
-FENS_DATA_DIR=/mnt/ceph/users/wbroderick/workshop_data/fens2024 python ccn-software-fens-2024/scripts/setup.py
+FENS_DATA_DIR=/home/jovyan/data python ccn-software-fens-2024/scripts/setup.py
 cp -R ccn-software-fens-2024/notebooks ./notebooks
