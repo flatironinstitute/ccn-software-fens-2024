@@ -4,11 +4,11 @@
 # Fit head-direction population
 
 ## Learning objectives
-
+<div class="notes">
 - Learn how to add history-related predictors to NeMoS GLM
 - Learn about NeMoS `Basis` objects
 - Learn how to use `Basis` objects with convolution
-
+</div>
 """
 
 import matplotlib.pyplot as plt
