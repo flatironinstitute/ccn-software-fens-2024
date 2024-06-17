@@ -27,6 +27,7 @@ classifiers = [
 
 # Define dependencies for the project
 dependencies = [
+    'numpy<2',
     'mkdocs',
     'mkdocs_section_index',
     'mkdocs_literate_nav',
