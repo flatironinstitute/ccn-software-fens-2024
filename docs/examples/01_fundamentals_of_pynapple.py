@@ -276,13 +276,36 @@ plt.show()
 
 # %%
 # ## Extra : pynajax
+#
+# Currently, pynapple uses `numba` for accelerating functions. For example, the pynapple convolution function works on cpu with numba by default.
+#
+# **Question:** Can you convolve the `banana` column of time series `tsd2` with a uniform kernel of size 11?
+
+kernel = np.ones(11)/11
+
+new_banana = tsd2['banana'].convolve(kernel)
 
 
+# %%
+# **Question:** and plot it?
+
+plt.figure()
+plt.plot(tsd2['banana'])
+plt.plot(new_banana)
+plt.show()
 
 
+# %%
+# `pynajax` is a package that can be used as a replacement for `numba` when accelerating functions.
+# To install `pynajax`, you can run the following cell.
+#
+# `pip install pynajax`
+#
+# **Question:** Setting the backend to `jax`, can you convolve `banana` again with a uniform kernel?
 
+nap.nap_config.set_backend("jax")
 
-
+new_banana = tsd2['banana'].convolve(kernel)
 
 
 
