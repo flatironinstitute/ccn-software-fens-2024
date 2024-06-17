@@ -538,13 +538,7 @@ print(f"Convolved count shape: {convolved_count.shape}")
 # - Fit a `PopulationGLM`
 # - Print the shape of the estimated coefficients.
 # </div>
-#
-# !!! note "Ridge Regularization"
-#     Ridge regularization is a common practice in regression problems for preventing over-fitting. It works
-#     by biasing the parameters towards smaller values. Consider using Ridge regularization whenever the
-#     parameter space is large or the number of samples is limited. Deciding the type and the amount regularization
-#     is ang
-#
+
 
 model = nmo.glm.PopulationGLM(
     regularizer=nmo.regularizer.Ridge("LBFGS", regularizer_strength=0.1)
@@ -552,7 +546,14 @@ model = nmo.glm.PopulationGLM(
 
 print(f"Model coefficients shape: {model.coef_.shape}")
 
+
 # %%
+# !!! note "Ridge Regularization"
+#     Ridge regularization is a common practice in regression problems for preventing over-fitting. It works
+#     by biasing the parameters towards smaller values. Consider using Ridge regularization whenever the
+#     parameter space is large or the number of samples is limited. Deciding the type and the amount regularization
+#     is a broad topic, here is where you can get started xxx!
+#
 # #### Comparing model predictions.
 # <div class="notes">
 # - Predict the firing rate of each neuron
