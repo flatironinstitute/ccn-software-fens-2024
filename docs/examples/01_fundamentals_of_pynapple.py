@@ -305,7 +305,7 @@ plt.show()
 
 nap.nap_config.set_backend("jax")
 
-new_banana = tsd2.convolve(kernel)['banana']
+new_banana = tsd2['banana'].convolve(kernel)
 
 
 
