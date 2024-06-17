@@ -31,7 +31,7 @@ retriever = pooch.create(
     retry_if_failed=2,
     # this defaults to true, unless the env variable with same name is set
     allow_updates="POOCH_ALLOW_UPDATES",
-    # user can use FENS_DATA_DIR to update
+    # user can use FENS_DATA_DIR to update path where we store data
     env="FENS_DATA_DIR",
 )
 
