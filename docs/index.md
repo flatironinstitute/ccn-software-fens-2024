@@ -50,7 +50,7 @@ Before the workshop, please try to complete the following steps. If you are unab
 
 If `check_setup.py` tells you setup was successful, then you're good to go. Otherwise, please come to the installation help session in the hotel, Palais Saschen Coburg room IV, on Saturday, so everyone is ready to get started Sunday morning.
 
-After doing the above, the `data/` and `notebooks/` directories within your local copy of the `ccn-software-fens-2024` repository will contain the NWB files and jupyter notebooks, respectively.
+After doing the above, the `data/` and `notebooks/` directories within your local copy of the `ccn-software-fens-2024` repository will contain the NWB files and jupyter notebooks for the workshop.
 
 ## Converting your data to NWB
 
