@@ -48,6 +48,7 @@ dependencies = [
     'imageio',
     'pooch',
     'rich',
+    'pynajax',
 ]
 
 # Configure package discovery for setuptools
