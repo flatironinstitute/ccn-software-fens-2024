@@ -6,7 +6,7 @@
 ## Learning objectives {.keep-text}
 
 - Learn how to add history-related predictors to NeMoS GLM
-- Learn about NeMoS `Basis` objects
+- Learn how to reduce over-fitting with `Basis`
 - Learn how to use `Basis` objects with convolution
 
 """
