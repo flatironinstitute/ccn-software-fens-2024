@@ -8,6 +8,7 @@
 - Use numpy with pynapple
 - Slicing pynapple objects
 - Learn the core functions of pynapple
+- Extras : pynajax
 
 The pynapple documentation can be found [here](https://pynapple-org.github.io/pynapple/).
 
@@ -23,7 +24,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-# %%
+# %%{.keep-text}
 # For this notebook we will work with fake data. The following cells generate a set of variables that we will use to create the different pynapple objects.
 
 var1 = np.random.randn(100) # Variable 1
@@ -43,8 +44,8 @@ random_times_3 = np.sort(np.random.uniform(10, 80, 100))
 starts_1 = np.array([10000, 60000, 90000]) # starts of an epoch in `ms`
 ends_1 = np.array([20000, 80000, 95000]) # ends in `ms`
 
-# %%
-# ## Instantiate pynapple objects {.keep-text}
+# %% 
+# ## Instantiate pynapple objects {.strip-code,.keep-text}
 #
 # This is a lot of variables to carry around. pynapple can help reduce the size of the workspace. Here we will instantiate all the different pynapple objects with the variables created above.
 #
@@ -97,7 +98,7 @@ tsgroup = nap.TsGroup({0:ts1, 1:ts2, 2:ts3})
 print(tsgroup)
 
 # %%
-# ## Interaction between pynapple objects {.keep-text}
+# ## Interaction between pynapple objects {.strip-code,.keep-text}
 #
 # We reduced 12 variables in our workspace to 5 using pynapple. Now we can see how the objects interact.
 #
@@ -135,9 +136,9 @@ print(tsd1)
 print(tsd1.time_support)
 
 # %%
-# ## Numpy & pynapple
+# ## Numpy & pynapple {.strip-code,.keep-text}
 #
-# Pynapple objects behaves very similarly like numpy array. They can be sliced withe the following syntax :
+# Pynapple objects behaves very similarly like numpy array. They can be sliced with the following syntax :
 # 
 #   `tsd[0:10] # First 10 elements`
 #
@@ -159,7 +160,7 @@ print(np.mean(tsd2, 1))
 # Notice how the output in the second case is still a pynapple object.
 # In most cases, applying a numpy function will return a pynapple object if the time index is preserved.
 #
-# ## Slicing pynapple objects {.keep-text}
+# ## Slicing pynapple objects {.strip-code,.keep-text}
 #
 # Multiple methods exists to slice pynapple object. This parts reviews them.
 #
@@ -175,9 +176,9 @@ print(ep[[0,2]])
 print(tsd3.get(50.1))
 
 # %%
-# ## `TsGroup` manipulation
+# ## `TsGroup` manipulation {.strip-code,.keep-text}
 #
-# `TsGroup` is under the hood a python dictionnary but the capabilities have been extented.
+# `TsGroup` is under the hood a python dictionary but the capabilities have been extended.
 # **Question:** Can you run the following command `tsgroup['planet'] = ['mars', 'venus', 'saturn']`
 
 tsgroup['planet'] = ['mars', 'venus', 'saturn']
@@ -202,7 +203,7 @@ tsgroup[tsgroup.rate < 1.0]
 
 
 # %%
-# ## Core functions of pynapple
+# ## Core functions of pynapple {.strip-code,.keep-text}
 #
 # This part focuses on the most important core functions of pynapple. 
 #
@@ -273,14 +274,38 @@ plt.plot(tsd1.threshold(0.0), 'o-')
 plt.show()
 
 
+# %%
+# ## Extra : pynajax
+#
+# Currently, pynapple uses `numba` for accelerating functions. For example, the pynapple convolution function works on cpu with numba by default.
+#
+# **Question:** Can you convolve the `banana` column of time series `tsd2` with a uniform kernel of size 11?
+
+kernel = np.ones(11)/11
+
+new_banana = tsd2['banana'].convolve(kernel)
 
 
+# %%
+# **Question:** and plot it?
+
+plt.figure()
+plt.plot(tsd2['banana'])
+plt.plot(new_banana)
+plt.show()
 
 
+# %%
+# `pynajax` is a package that can be used as a replacement for `numba` when accelerating functions.
+# To install `pynajax`, you can run the following cell.
+#
+# `pip install pynajax`
+#
+# **Question:** Setting the backend to `jax`, can you convolve `banana` again with a uniform kernel?
 
+nap.nap_config.set_backend("jax")
 
-
-
+new_banana = tsd2['banana'].convolve(kernel)
 
 
 

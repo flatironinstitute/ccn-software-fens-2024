@@ -20,19 +20,19 @@ import pathlib
 from typing import List
 import pooch
 import click
+DATA_DIR = pathlib.Path(__file__).parent.parent.parent / 'data'
 
 
 retriever = pooch.create(
-    # Use the default cache folder for the operating system
-    # Pooch uses appdirs (https://github.com/ActiveState/appdirs) to
-    # select an appropriate directory for the cache on each platform.
-    path=pooch.os_cache('ccn-software-fens-2024'),
+    path=DATA_DIR,
     base_url="",
     urls=REGISTRY_URLS,
     registry=REGISTRY,
     retry_if_failed=2,
     # this defaults to true, unless the env variable with same name is set
     allow_updates="POOCH_ALLOW_UPDATES",
+    # user can use FENS_DATA_DIR to update
+    env="FENS_DATA_DIR",
 )
 
 
@@ -75,6 +75,14 @@ def fetch_data(dataset_name: str) -> pathlib.Path:
 
 @click.command()
 def main():
+    """Download data.
+
+    By default, this will be in data directory in this repo. To overwrite, set
+    FENS_DATA_DIR environment variable, e.g.,
+
+    FENS_DATA_DIR=path/to/data_dir python fetch.py
+
+    """
     fetch_data("allen_478498617.nwb")
     fetch_data("Mouse32-140822.nwb")
 
