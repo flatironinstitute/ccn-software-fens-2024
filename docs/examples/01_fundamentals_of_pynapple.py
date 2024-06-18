@@ -38,7 +38,7 @@ var3 = np.random.randn(1000, 4, 5) # Variable 3
 tsp3 = np.arange(0, 100, 0.1) # The timesteps of variable 3
 
 random_times_1 = np.array([3.14, 37.0, 42.0])
-random_times_2 = np.array([10.0, 30, 50, 70])
+random_times_2 = np.array([10, 25, 50, 70])
 random_times_3 = np.sort(np.random.uniform(10, 80, 100))
 
 starts_1 = np.array([10000, 60000, 90000]) # starts of an epoch in `ms`
@@ -147,6 +147,7 @@ print(tsd1.time_support)
 #   `tsd = tsd + 1`
 #
 # Finally numpy functions works directly. Let's imagine `tsd3` is a movie with frame size (4,5).
+#
 # **Question:** Can you compute the average frame along the time axis using `np.mean` and print the result?
 
 print(np.mean(tsd3, 0))
@@ -165,12 +166,14 @@ print(np.mean(tsd2, 1))
 # Multiple methods exists to slice pynapple object. This parts reviews them.
 #
 # `IntervalSet` also behaves like numpy array.
+#
 # **Question:** Can you extract the first and last epoch of `ep` in a new `IntervalSet`?
 
 print(ep[[0,2]])
 
 # %%
 # Sometimes you want to get a data point as close as possible in time to another timestamps.
+#
 # **Question:** Using the `get` method, can you get the data point from `tsd3` as close as possible to the time 50.1 seconds?
 
 print(tsd3.get(50.1))
@@ -178,7 +181,8 @@ print(tsd3.get(50.1))
 # %%
 # ## `TsGroup` manipulation {.strip-code,.keep-text}
 #
-# `TsGroup` is under the hood a python dictionary but the capabilities have been extended.
+# `TsGroup` is under the hood a python dictionnary but the capabilities have been extented.
+#
 # **Question:** Can you run the following command `tsgroup['planet'] = ['mars', 'venus', 'saturn']`
 
 tsgroup['planet'] = ['mars', 'venus', 'saturn']
@@ -221,7 +225,7 @@ ax = plt.subplot(211)
 plt.plot(count, 'o-')
 plt.subplot(212, sharex=ax)
 plt.plot(tsgroup.restrict(ep_signal).to_tsd(), 'o')
-plt.show()
+
 
 # %%
 # From a set of timestamps, you want to assign them a set of values with the closest point in time of another time series.
@@ -237,7 +241,7 @@ plt.figure()
 plt.plot(tsd1)
 plt.plot(new_tsd, 'o-')
 plt.plot(ts2.fillna(0), 'o')
-plt.show()
+
 
 # %%
 # **Question:** 
@@ -253,7 +257,7 @@ new_tsd2 = tsd2.bin_average(5.0)
 plt.figure()
 plt.plot(tsd2['tomato'])
 plt.plot(new_tsd2['tomato'], 'o-')
-plt.show()
+
 
 # %%
 # For `tsd1`, you want to find all the epochs for which the value is above 0.0. Pynapple provides the function `threshold` to get 1 dimensional time series above or below a certain value.
@@ -271,7 +275,7 @@ plt.figure()
 plt.plot(tsd1)
 plt.plot(tsd1.threshold(0.0), 'o-')
 [plt.axvspan(s, e, alpha=0.2) for s,e in ep_above.values]
-plt.show()
+
 
 
 # %%
@@ -292,7 +296,7 @@ new_banana = tsd2['banana'].convolve(kernel)
 plt.figure()
 plt.plot(tsd2['banana'])
 plt.plot(new_banana)
-plt.show()
+
 
 
 # %%
@@ -308,7 +312,17 @@ nap.nap_config.set_backend("jax")
 new_banana = tsd2['banana'].convolve(kernel)
 
 
+# %%
+# ## Important
+#
+# **Question:** Does this work?
+# 
+# If not, please ask a TA.
 
+# {.keep-code}
+import workshop_utils
+path = workshop_utils.fetch_data("Mouse32-140822.nwb")
+print(path)
 
 
 
