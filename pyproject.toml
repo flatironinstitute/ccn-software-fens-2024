@@ -49,6 +49,7 @@ dependencies = [
     'pooch',
     'rich',
     'pynajax',
+    'scikit-image',
 ]
 
 # Configure package discovery for setuptools
