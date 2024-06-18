@@ -225,7 +225,7 @@ ax = plt.subplot(211)
 plt.plot(count, 'o-')
 plt.subplot(212, sharex=ax)
 plt.plot(tsgroup.restrict(ep_signal).to_tsd(), 'o')
-plt.show()
+
 
 # %%
 # From a set of timestamps, you want to assign them a set of values with the closest point in time of another time series.
@@ -241,7 +241,7 @@ plt.figure()
 plt.plot(tsd1)
 plt.plot(new_tsd, 'o-')
 plt.plot(ts2.fillna(0), 'o')
-plt.show()
+
 
 # %%
 # **Question:** 
@@ -257,7 +257,7 @@ new_tsd2 = tsd2.bin_average(5.0)
 plt.figure()
 plt.plot(tsd2['tomato'])
 plt.plot(new_tsd2['tomato'], 'o-')
-plt.show()
+
 
 # %%
 # For `tsd1`, you want to find all the epochs for which the value is above 0.0. Pynapple provides the function `threshold` to get 1 dimensional time series above or below a certain value.
@@ -275,7 +275,7 @@ plt.figure()
 plt.plot(tsd1)
 plt.plot(tsd1.threshold(0.0), 'o-')
 [plt.axvspan(s, e, alpha=0.2) for s,e in ep_above.values]
-plt.show()
+
 
 
 # %%
@@ -296,7 +296,7 @@ new_banana = tsd2['banana'].convolve(kernel)
 plt.figure()
 plt.plot(tsd2['banana'])
 plt.plot(new_banana)
-plt.show()
+
 
 
 # %%
