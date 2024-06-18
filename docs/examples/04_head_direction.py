@@ -263,6 +263,7 @@ workshop_utils.plotting.plot_features(input_feature, count.rate, suptitle)
 # - Split your epochs in two for validation purposes.
 # </div>
 
+# {.keep-code}
 # construct the train and test epochs
 duration = neuron_count.time_support.tot_length()
 start = neuron_count.time_support["start"]
@@ -291,13 +292,9 @@ model.fit(
 # - Plot the weights.
 # </div>
 
-plt.figure()
-plt.title("Spike History Weights")
-plt.plot(np.arange(window_size) / count.rate, model.coef_, lw=2, label="GLM raw history 1st Half")
-plt.axhline(0, color="k", lw=0.5)
-plt.xlabel("Time From Spike (sec)")
-plt.ylabel("Kernel")
-plt.legend()
+# {.keep-code}
+workshop_utils.plotting.plot_and_compare_weights(
+    [model.coef_], ["GLM raw history 1st Half"], count.rate)
 
 # %%
 # The response in the previous figure seems noise added to a decay, therefore the response
@@ -306,7 +303,7 @@ plt.legend()
 # If we are correct, what would happen if we re-fit the weights on the other half of the data?
 # #### Inspecting the results
 # <div class="notes">
-# - Fit on the other half and compare results.
+# - Fit on the other half.
 # </div>
 # Fit on the test set.
 
@@ -316,16 +313,17 @@ model_second_half.fit(
     neuron_count.restrict(second_half)
 )
 
-plt.figure()
-plt.title("Spike History Weights")
-plt.plot(np.arange(window_size) / count.rate, np.squeeze(model.coef_),
-         label="GLM raw history 1st Half", lw=2)
-plt.plot(np.arange(window_size) / count.rate,  np.squeeze(model_second_half.coef_),
-         color="orange", label="GLM raw history 2nd Half", lw=2)
-plt.axhline(0, color="k", lw=0.5)
-plt.xlabel("Time From Spike (sec)")
-plt.ylabel("Kernel")
-plt.legend()
+# %%
+# Compare the results
+# <div class="notes">
+# - Compare results.
+# </div>
+
+# {.keep-code}
+workshop_utils.plotting.plot_and_compare_weights(
+    [model.coef_, model_second_half.coef_],
+    ["GLM raw history 1st Half", "GLM raw history 2nd Half"],
+    count.rate)
 
 # %%
 # What can we conclude?
@@ -442,14 +440,12 @@ print(self_connection.shape)
 # <div class="notes">
 # - Compare with the raw count history model.
 # </div>
-plt.figure()
-plt.title("Spike History Weights")
-plt.plot(time, model.coef_, alpha=0.3, label="GLM raw history")
-plt.plot(time, self_connection, "--k", label="GLM basis", lw=2)
-plt.axhline(0, color="k", lw=0.5)
-plt.xlabel("Time from spike (sec)")
-plt.ylabel("Weight")
-plt.legend()
+
+# {.keep-code}
+fig = workshop_utils.plotting.plot_and_compare_weights(
+    [model.coef_, model_second_half.coef_, self_connection],
+    ["GLM raw history 1st Half", "GLM raw history 2nd Half", "GLM basis 1st half"],
+    count.rate)
 
 # %%
 # Let's check if our new estimate does a better job in terms of over-fitting. We can do that
@@ -458,7 +454,6 @@ plt.legend()
 #
 # <div class="notes">
 # - Fit the other half of the data.
-# - Plot and compare the results.
 # </div>
 model_basis_second_half = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
 model_basis_second_half.fit(conv_spk.restrict(second_half), neuron_count.restrict(second_half))
@@ -466,16 +461,18 @@ model_basis_second_half.fit(conv_spk.restrict(second_half), neuron_count.restric
 # compute responses for the 2nd half fit
 self_connection_second_half = np.matmul(basis_kernels, model_basis_second_half.coef_)
 
-plt.figure()
-plt.title("Spike History Weights")
-plt.plot(time, model.coef_, "k", alpha=0.3, label="GLM raw history 1st half")
-plt.plot(time, model_second_half.coef_, alpha=0.3, color="orange", label="GLM raw history 2nd half")
-plt.plot(time, self_connection, "--k", lw=2, label="GLM basis 1st half")
-plt.plot(time, self_connection_second_half, color="orange", lw=2, ls="--", label="GLM basis 2nd half")
-plt.axhline(0, color="k", lw=0.5)
-plt.xlabel("Time from spike (sec)")
-plt.ylabel("Weight")
-plt.legend()
+# %%
+#
+# <div class="notes">
+# - Plot and compare the results.
+# </div>
+
+workshop_utils.plotting.plot_and_compare_weights(
+    [model.coef_, model_second_half.coef_, self_connection, self_connection_second_half],
+    ["GLM raw history 1st Half", "GLM raw history 2nd half", "GLM basis 1st half", "GLM basis 2nd half"],
+    count.rate
+)
+
 
 # %%
 # Let's extract and plot the rates

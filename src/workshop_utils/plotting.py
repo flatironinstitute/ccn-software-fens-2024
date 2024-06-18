@@ -865,3 +865,26 @@ def plot_current_history_features(current, features, basis, window_duration_sec,
     axes[0, 2].plot(time, basis)
     axes[1, 2].plot(features)
     axes[0, 2].set_title("All features")
+
+
+def plot_and_compare_weights(responses, labels, sampling_rate, fig=None):
+    if fig is None:
+        fig = plt.figure()
+        fig.add_subplot(1, 1, 1)
+
+    colors = ["orange", "lightskyblue", "tomato", "dodgerblue"]
+    ls = ["-", "-", "--", "--"]
+    lw = [1, 1, 2, 2]
+    ax = fig.axes[0]
+
+    ax.set_title("Spike History Weights")
+    for i, response in enumerate(responses):
+        window_size = len(response)
+        ax.plot(np.arange(window_size) / sampling_rate, response, color=colors[i%4], ls=ls[i%4],
+        lw=lw[i%4], label=labels[i])
+    ax.axhline(0, color="k", lw=0.5)
+    ax.set_xlabel("Time From Spike (sec)")
+    ax.set_ylabel("Kernel")
+    # Update legend with the combined handles and labels
+    ax.legend()
+    return fig
