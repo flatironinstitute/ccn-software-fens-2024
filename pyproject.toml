@@ -43,7 +43,7 @@ dependencies = [
     'ipython',
     'scikit-learn',
     'simplejpeg',
-    'fastplotlib[notebook]',
+    'fastplotlib[notebook] @ git+https://github.com/fastplotlib/fastplotlib.git',
     'glfw',
     'imageio',
     'pooch',

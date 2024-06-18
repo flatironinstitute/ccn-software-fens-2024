@@ -31,25 +31,12 @@
 # add graphics to a plot, and subsequently interact with the plot.
 
 # %%
-# **The example images are from `imageio` so you will need to install it for this example notebook. But `imageio`
-# is not required to use fasptlotlib**
-
-# uncomment and install if needed
-#! pip install imageio
-
-# %%
-#
-
-import imageio.v3 as iio
-
-# %%
 # By default, `fastplotlib` will enumerate the available devices and highlight which device has been selected by
 # default when importing the module.
 
 import fastplotlib as fpl
 import numpy as np
-from itertools import product
-
+import imageio.v3 as iio
 # %%
 # ## Simple Image
 
@@ -96,6 +83,7 @@ image_graphic.data[data > 175] = 255
 
 # %%
 # **Adjust vmin vmax**
+# NOTE: vmin and vmax values range from (0, 255)
 
 image_graphic.vmin = 50
 image_graphic.vmax = 150
@@ -270,19 +258,31 @@ sinc_graphic.cmap[10:50] = "gray"
 sine_graphic.cmap = "seismic"
 
 # %%
-
-# more complex indexing, set the blue value directly from an array
-cosine_graphic.colors[65:90, 0] = np.linspace(0, 1, 90-65)
-
-# %%
-
-# slicing data
-bool_key = [True, True, True, False, False] * 20
-sinc_graphic.data[bool_key, 1] = 7  # y vals to 1
-
-# %%
-# #### 2D Lines Practice {.strip-code,.keep-text}
 #
+
+# close the plot
+fig_lines.close()
+
+# %%
+# #### 2D Lines Practice {.keep-code,.keep-text}
+
+# same plot with sine and cosine wave only
+# Create a figure
+fig_lines = fpl.Figure()
+
+# we will add all the lines to the same subplot
+subplot = fig_lines[0, 0]
+
+# plot sine wave, use a single color
+sine_graphic = subplot.add_line(data=sine, thickness=5, colors="magenta")
+
+# you can also use colormaps for lines!
+cosine_graphic = subplot.add_line(data=cosine, thickness=12, cmap="autumn")
+
+# show the plot
+fig_lines.show(sidecar=True, sidecar_kwargs={"title": "lines"})
+
+# %% {.strip-code, .keep-text}
 # **Question:** Can you change the colormap of the sine_graphic to "hsv"?
 
 sine_graphic.cmap = "hsv"
@@ -293,10 +293,10 @@ sine_graphic.cmap = "hsv"
 sinc_graphic.colors[:50] = "g"
 
 # %%
-# **Question:** Can you to change the last 50 data points of the cosine_graphic to equal the last 50 points of the
-# sine_graphic?
+# **Question:** Can you to change the color of last 50 data points of the cosine_graphic to equal the colors of the
+# last 50 data points of the sine_graphic?
 
-cosine_graphic.data[50:] = sine_graphic.data[50:]
+cosine_graphic.colors[50:] = sine_graphic.colors[50:]
 
 # %%
 # #### Capture changes to graphic properties as events
@@ -346,21 +346,16 @@ def make_circle(center, radius: float, n_points: int = 75) -> np.ndarray:
 
     return np.column_stack([xs, ys]) + center
 
-
-spatial_dims = (50, 50)
-
-# this makes 16 circles, so we can create 16 cmap values, so it will use these values to set the
+# this makes 5 circles, so we can create 5 cmap values, so it will use these values to set the
 # color of the line based by using the cmap as a LUT with the corresponding cmap_value
 circles = list()
-for center in product(range(0, spatial_dims[0], 15), range(0, spatial_dims[1], 15)):
-    circles.append(make_circle(center, 5, n_points=75))
+for x in range(0, 50, 10):
+    circles.append(make_circle(center=(x, 0), radius=4, n_points=100))
 
 # things like class labels, cluster labels, etc.
+# see the tab10 colormap [here](https://matplotlib.org/stable/_images/sphx_glr_colormaps_006.png)
 cmap_transform = [
-    0, 1, 1, 2,
-    7, 0, 1, 1,
-    2, 2, 8, 3,
-    1, 9, 1, 5
+    0, 1, 2, 1, 0,
 ]
 
 # %%
@@ -412,13 +407,9 @@ sine_graphic = fig[0, 0].add_line(data=sine, colors="w")
 # add a linear selector the sine wave
 selector = sine_graphic.add_linear_selector()
 
-# fastplotlib LinearSelector can make an ipywidget slider and return it :D
-ipywidget_slider = selector.make_ipywidget_slider()
-ipywidget_slider.description = "slider"
-
-
 fig[0, 0].auto_scale()
-fig.show(add_widgets=[ipywidget_slider], maintain_aspect=False)
+
+fig.show(maintain_aspect=False)
 
 # %%
 
@@ -484,8 +475,6 @@ fig.close()
 
 # %%
 # ## For a more comprehensive intro to the library, please see our guide:
-
-
 
 
 

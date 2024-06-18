@@ -15,7 +15,7 @@ The pynapple documentation can be found [here](https://pynapple-org.github.io/py
 The documentation for objects and method of the core of pynapple is [here](https://pynapple-org.github.io/pynapple/reference/core/).
 
 
-Let's start by importing the pynapple package and matplotlib to see if everything is correctly installed. 
+Let's start by importing the pynapple package and matplotlib to see if everything is correctly installed.
 If an import fails, you can do `!pip install pynapple matplotlib` in a cell to fix it.
 """
 # %%
@@ -38,18 +38,18 @@ var3 = np.random.randn(1000, 4, 5) # Variable 3
 tsp3 = np.arange(0, 100, 0.1) # The timesteps of variable 3
 
 random_times_1 = np.array([3.14, 37.0, 42.0])
-random_times_2 = np.array([10.0, 30, 50, 70])
+random_times_2 = np.array([10, 25, 50, 70])
 random_times_3 = np.sort(np.random.uniform(10, 80, 100))
 
 starts_1 = np.array([10000, 60000, 90000]) # starts of an epoch in `ms`
 ends_1 = np.array([20000, 80000, 95000]) # ends in `ms`
 
-# %% 
+# %%
 # ## Instantiate pynapple objects {.strip-code,.keep-text}
 #
 # This is a lot of variables to carry around. pynapple can help reduce the size of the workspace. Here we will instantiate all the different pynapple objects with the variables created above.
 #
-# Let's start with the simple ones. 
+# Let's start with the simple ones.
 #
 # **Question:** Can you instantiate the right pynapple objects for `var1`, `var2` and `var3`? Objects should be named respectively `tsd1`, `tsd2` and `tsd3`. Don't forget the column name for `var2`.
 
@@ -78,7 +78,7 @@ print(ep)
 
 # %%
 # The experiment generated a set of timestamps from 3 different channels.
-#  
+#
 # **Question:** Can you instantiate the corresponding pynapple object (`ts1`, `ts2`, `ts3`) for each one of them?
 
 ts1 = nap.Ts(t=random_times_1)
@@ -120,8 +120,8 @@ print(tsgroup.time_support)
 print(tsgroup.rate)
 
 # %%
-# Now you realized the variable `tsd1` has some noise. The good signal is between 10 and 30 seconds and  50 and 100. 
-# 
+# Now you realized the variable `tsd1` has some noise. The good signal is between 10 and 30 seconds and  50 and 100.
+#
 # **Question:** Can you create an `IntervalSet` object called `ep_signal` and use it to restrict the variable `tsd1`?
 
 ep_signal = nap.IntervalSet(start=[10, 50], end=[30, 100])
@@ -139,14 +139,15 @@ print(tsd1.time_support)
 # ## Numpy & pynapple {.strip-code,.keep-text}
 #
 # Pynapple objects behaves very similarly like numpy array. They can be sliced with the following syntax :
-# 
+#
 #   `tsd[0:10] # First 10 elements`
 #
 # Arithmetical operations are available as well :
-# 
+#
 #   `tsd = tsd + 1`
 #
 # Finally numpy functions works directly. Let's imagine `tsd3` is a movie with frame size (4,5).
+#
 # **Question:** Can you compute the average frame along the time axis using `np.mean` and print the result?
 
 print(np.mean(tsd3, 0))
@@ -165,12 +166,14 @@ print(np.mean(tsd2, 1))
 # Multiple methods exists to slice pynapple object. This parts reviews them.
 #
 # `IntervalSet` also behaves like numpy array.
+#
 # **Question:** Can you extract the first and last epoch of `ep` in a new `IntervalSet`?
 
 print(ep[[0,2]])
 
 # %%
 # Sometimes you want to get a data point as close as possible in time to another timestamps.
+#
 # **Question:** Using the `get` method, can you get the data point from `tsd3` as close as possible to the time 50.1 seconds?
 
 print(tsd3.get(50.1))
@@ -178,7 +181,8 @@ print(tsd3.get(50.1))
 # %%
 # ## `TsGroup` manipulation {.strip-code,.keep-text}
 #
-# `TsGroup` is under the hood a python dictionary but the capabilities have been extended.
+# `TsGroup` is under the hood a python dictionnary but the capabilities have been extented.
+#
 # **Question:** Can you run the following command `tsgroup['planet'] = ['mars', 'venus', 'saturn']`
 
 tsgroup['planet'] = ['mars', 'venus', 'saturn']
@@ -191,7 +195,7 @@ print(tsgroup)
 # %%
 # After initialization, metainformation can only be added. Running the following command will raise an error: `tsgroup[3] = np.random.randn(3)`.
 #
-# From there, you can slice using the Index column (i.e. `tsgroup[0]`->nap.Ts, `tsgroup[[0,2]]` -> nap.TsGroup). 
+# From there, you can slice using the Index column (i.e. `tsgroup[0]`->nap.Ts, `tsgroup[[0,2]]` -> nap.TsGroup).
 #
 # But more interestingly you can also slice using the metadata. There are multiple methods for it : `getby_category`, `getby_threshold`, `getby_intervals`.
 #
@@ -205,7 +209,7 @@ tsgroup[tsgroup.rate < 1.0]
 # %%
 # ## Core functions of pynapple {.strip-code,.keep-text}
 #
-# This part focuses on the most important core functions of pynapple. 
+# This part focuses on the most important core functions of pynapple.
 #
 # **Question:** Using the `count` function, can you count the number of events within 1 second bins for `tsgroup` over the `ep_signal` intervals?
 
@@ -221,7 +225,7 @@ ax = plt.subplot(211)
 plt.plot(count, 'o-')
 plt.subplot(212, sharex=ax)
 plt.plot(tsgroup.restrict(ep_signal).to_tsd(), 'o')
-plt.show()
+
 
 # %%
 # From a set of timestamps, you want to assign them a set of values with the closest point in time of another time series.
@@ -237,12 +241,12 @@ plt.figure()
 plt.plot(tsd1)
 plt.plot(new_tsd, 'o-')
 plt.plot(ts2.fillna(0), 'o')
-plt.show()
+
 
 # %%
-# **Question:** 
-# One important aspect of data analysis is to bring data to the same size. Pynapple provides the `bin_average` function to downsample data. 
-# 
+# **Question:**
+# One important aspect of data analysis is to bring data to the same size. Pynapple provides the `bin_average` function to downsample data.
+#
 # **Question:** Can you downsample `tsd2` to one time point every 5 seconds?
 
 new_tsd2 = tsd2.bin_average(5.0)
@@ -253,12 +257,12 @@ new_tsd2 = tsd2.bin_average(5.0)
 plt.figure()
 plt.plot(tsd2['tomato'])
 plt.plot(new_tsd2['tomato'], 'o-')
-plt.show()
+
 
 # %%
 # For `tsd1`, you want to find all the epochs for which the value is above 0.0. Pynapple provides the function `threshold` to get 1 dimensional time series above or below a certain value.
 #
-# **Question: Can you print the epochs for which `tsd1` is above 0.0?** 
+# **Question: Can you print the epochs for which `tsd1` is above 0.0?**
 
 ep_above = tsd1.threshold(0.0).time_support
 
@@ -271,7 +275,7 @@ plt.figure()
 plt.plot(tsd1)
 plt.plot(tsd1.threshold(0.0), 'o-')
 [plt.axvspan(s, e, alpha=0.2) for s,e in ep_above.values]
-plt.show()
+
 
 
 # %%
@@ -292,7 +296,7 @@ new_banana = tsd2['banana'].convolve(kernel)
 plt.figure()
 plt.plot(tsd2['banana'])
 plt.plot(new_banana)
-plt.show()
+
 
 
 # %%
@@ -308,7 +312,17 @@ nap.nap_config.set_backend("jax")
 new_banana = tsd2['banana'].convolve(kernel)
 
 
+# %%
+# ## Important
+#
+# **Question:** Does this work?
+#
+# If not, please ask a TA.
 
+# {.keep-code}
+import workshop_utils
+path = workshop_utils.fetch_data("Mouse32-140822.nwb")
+print(path)
 
 
 
