@@ -44,6 +44,8 @@ jobs:
         python scripts/strip_text.py
         # download data first, so we don't have a race for each notebook
         python src/workshop_utils/fetch.py
+        # remove keep-code from the full tutorial files before rendering
+        sed -i '/keep-code/d' docs/examples/*py
 
     - name: Build site
       # In order to reduce interval tqdm updates (so that rendered output is less
