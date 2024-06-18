@@ -56,10 +56,6 @@ import workshop_utils
 # configure plots some
 plt.style.use(workshop_utils.STYLE_FILE)
 
-# Set the default precision to float64, which is generally a good idea for
-# optimization purposes.
-# jax.config.update("jax_enable_x64", True)
-
 # %%
 # ## Data Streaming
 #
@@ -123,34 +119,27 @@ print(data)
 #
 # Now let's go through the relevant variables in some more detail:
 # <div class="notes">"
-# - `units`: dictionary of neurons, holding each neuron's spike timestamps.
-# - `epochs`: start and end times of different intervals, defining the
+# - `units`: Tsgroup, dictionary of neurons, holding each neuron's spike timestamps.
+# - `epochs`: IntervalSet, start and end times of different intervals, defining the
 #   experimental structure, specifying when each stimulation protocol began and
 #   ended.
-# - `stimulus`: injected current, in Amperes, sampled at 20k Hz.
-# - `response`: the neuron's intracellular voltage, sampled at 20k Hz.
+# - `stimulus`: Tsd containing injected current, in Amperes, sampled at 20k Hz.
+# - `response`: Tsd containing the neuron's intracellular voltage, sampled at 20k Hz.
 # </div>
-
-
-trial_interval_set = data["epochs"]
-# convert current from Ampere to pico-amperes, to match the above visualization
-# and move the values to a more reasonable range.
-current = data["stimulus"] * 1e12
-spikes = data["units"]
-
-# %% 
-# First, let's examine `trial_interval_set`:
+#
+# First, let's examine the epochs:
 # <div class="notes">"
-# - `trial_interval_set`: dictionary of start and end times of different intervals, defining the
+# - `epochs`: dictionary of start and end times of different intervals, defining the
 #   experimental structure, specifying when each stimulation protocol began and
 #   ended.
 # </div>
 
-trial_interval_set.keys()
+epochs = data["epochs"]
+epochs.keys()
 
 # %%
 #
-# `trial_interval_set` is a dictionary with strings for keys and
+# `epochs` is a dictionary with strings for keys and
 # [`IntervalSets`](https://pynapple-org.github.io/pynapple/reference/core/interval_set/)
 # for values. Each key defines the stimulus protocol, with the value defining
 # the beginning and end of that stimulation protocol.
@@ -159,7 +148,7 @@ trial_interval_set.keys()
 # - `Noise 1`: epochs of random noise
 # </div>
 
-noise_interval = trial_interval_set["Noise 1"]
+noise_interval = epochs["Noise 1"]
 noise_interval
 
 # %%
@@ -178,13 +167,15 @@ noise_interval
 
 # %%
 #
-# Now let's examine `current`:
+# Now let's examine the input current:
 #
 # <div class="notes">"
 # - `current` : Tsd (TimeSeriesData) : time index + data
 # </div>
 
-
+# convert current from Ampere to pico-amperes, to match the Allen Institute figures and
+# move the values to a more reasonable range.
+current = data["stimulus"] * 1e12
 current
 
 # %%
@@ -212,16 +203,17 @@ current
 #
 # Notice that the timestamps have changed and our shape is much smaller.
 #
-# Finally, let's examine the spike times. `spikes` is a
+# Finally, let's examine the spike times. These are stored in a
 # [`TsGroup`](https://pynapple-org.github.io/pynapple/reference/core/ts_group/),
 # a dictionary-like object that holds multiple `Ts` (timeseries) objects with
 # potentially different time indices:
 #
 # <div class="notes">"
 # - `TsGroup` : a custom dictionary holding multiple `Ts` (timeseries) objects with
-# potentially different time indices.
+#   potentially different time indices.
 # </div>
 
+spikes = data["units"]
 spikes
 
 # %%
@@ -750,7 +742,7 @@ binned_current[2:]
 # 1 or 5 msec ago matters a lot, whereas whether an input happened 51 or 55 msec ago is
 # less important.
 
-workshop_utils.plotting.plot_basis(window_size_sec=current_history_duration_sec)
+workshop_utils.plotting.plot_basis()
 
 # %%
 # [^3]: Pillow, J. W., Paninski, L., Uzzel, V. J., Simoncelli, E. P., & J.,
@@ -811,14 +803,19 @@ basis = nmo.basis.RaisedCosineBasisLog(
 
 # under the hood, this convolves the input with the filter bank visualized above
 current_history = basis.compute_features(binned_current)
-print(current_history.shape)
+print(current_history)
 
 # %%
 #
-# We can see that our design matrix is now 28020 time points by 10 features. If we had
-# used the raw shifted data as the features, like we started to do above, we'd have a
-# design matrix with 200 features, so we've ended up with more than an order of
-# magnitude fewer features!
+# We can see that our design matrix is now 28020 time points by 10 features, one for
+# each of our basis functions. If we had used the raw shifted data as the features, like
+# we started to do above, we'd have a design matrix with 200 features, so we've ended up
+# with more than an order of magnitude fewer features!
+#
+# Note that we have a bunch of NaNs at the beginning of each column. That's because of
+# boundary handling: we're using the input of the past 200 msecs to predict the firing
+# rate at time $t$, so what do we do in the first 200 msecs? The safest way is to ignore
+# them, so that the model doesn't consider them during the fitting procedure.
 #
 # What do these features look like?
 

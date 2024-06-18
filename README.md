@@ -91,7 +91,7 @@ Instead of directly writing tutorials as `.ipynb` files, which are hard to versi
     # #### Header
     this_code_removed
     ```
-    Note the empty line between the header and `{.keep-code}`! This is necessary to ensure that the line with `{.keep-code}` is considered part of the code block, not the markdown block containing the header.
+    Note the empty line between the header and `{.keep-code}`! This is necessary to ensure that the line with `{.keep-code}` is considered part of the code block, not the markdown block containing the header. For your local version (if you're running `mkdocs serve` / `mkdocs build` during development), these `{.keep-code}` tags will still appear in the fully rendered version, but we remove them manually before building for Github pages (using `sed`, see `.github/workflows/site.yml` for how).
 
 ## binder
 
