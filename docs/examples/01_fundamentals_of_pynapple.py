@@ -297,8 +297,6 @@ plt.figure()
 plt.plot(tsd2['banana'])
 plt.plot(new_banana)
 
-
-
 # %%
 # `pynajax` is a package that can be used as a replacement for `numba` when accelerating functions.
 # To install `pynajax`, you can run the following cell.
@@ -311,12 +309,10 @@ nap.nap_config.set_backend("jax")
 
 new_banana = tsd2['banana'].convolve(kernel)
 
-
 # %%
 # ## Important
 #
 # **Question:** Does this work?
-#
 # If not, please ask a TA.
 
 # {.keep-code}
