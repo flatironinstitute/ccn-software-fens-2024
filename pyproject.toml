@@ -48,7 +48,6 @@ dependencies = [
     'imageio',
     'pooch',
     'rich',
-    'pynajax',
     'scikit-image',
 ]
 
