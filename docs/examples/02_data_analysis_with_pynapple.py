@@ -7,6 +7,7 @@
 - Compute tuning curves
 - Decode neural activity
 - Compute correlograms
+- Compute perievent
 
 
 The pynapple documentation can be found [here](https://pynapple-org.github.io/pynapple/).
@@ -37,19 +38,6 @@ print(path)
 
 
 # %% 
-# If the above line didn't work, please run the following in a cell:
-#
-# ```
-# import tqdm, os, requests, math
-# path = "Mouse32-140822.nwb"
-# if path not in os.listdir("."):
-#     r = requests.get(f"https://osf.io/jb2gd/download", stream=True)
-#     block_size = 1024*1024
-#     with open(path, 'wb') as f:
-#         for data in tqdm.tqdm(r.iter_content(block_size), unit='MB', unit_scale=True,
-#             total=math.ceil(int(r.headers.get('content-length', 0))//block_size)):
-#             f.write(data)
-# ```
 #
 # Pynapple provides the convenience function `nap.load_file` for loading a NWB file.
 #
@@ -138,10 +126,10 @@ plt.subplot(223)
 plt.plot(tuning_curves.iloc[:,1])
 plt.subplot(224,projection='polar')
 plt.plot(tuning_curves.iloc[:,1])
-plt.show()
+
 
 # %%
-# Most of those neurons are head-directions neruons.
+# Most of those neurons are head-directions neurons.
 # 
 # 
 
@@ -172,20 +160,20 @@ plt.ylim(0, 2*np.pi)
 
 plt.subplot(212)
 plt.plot(spikes.restrict(ex_ep).to_tsd("pref_ang"), '|')
-plt.show()
+
 
 # %%
 # ## Decode neural activity {.strip-code,.keep-text}
 #
 # Population activity clearly codes for head-direction. Can we use the spiking activity of the neurons to infer the current heading of the animal? The process is called bayesian decoding.
 # 
-# **Question:** Using the right pynapple function, can you compute the decoded angle from the spiking activity?
+# **Question:** Using the right pynapple function, can you compute the decoded angle from the spiking activity during wakefulness?
 
 decoded, proba_feature = nap.decode_1d(
     tuning_curves=tuning_curves,
     group=spikes,
     ep=wake_ep,
-    bin_size=0.1,  # second
+    bin_size=0.3,  # second
 )
 
 # %%
@@ -199,8 +187,36 @@ plt.ylim(0, 2*np.pi)
 
 plt.subplot(212)
 plt.plot(spikes.restrict(ex_ep).to_tsd("pref_ang"), '|')
-plt.show()
 
+
+
+# %%
+# Since the tuning curves were computed during wakefulness, it is a circular action to decode spiking activity during wakefulness.
+# We can try something more interesting by trying to decode the angle during sleep. 
+
+# {.keep-code}
+rem_ep = data['rem']['1']
+
+# %%
+# **Question:** Can you compute the decoded angle from the spiking activity during REM sleep?
+
+decoded, proba_feature = nap.decode_1d(
+    tuning_curves=tuning_curves,
+    group=spikes,
+    ep=rem_ep,
+    bin_size=0.3,  # second
+)
+
+# %%
+# **Question:** ... and display the decoded angle next to the spiking activity?
+
+plt.figure()
+plt.subplot(211)
+plt.plot(decoded.restrict(rem_ep), label="decoded")
+plt.ylim(0, 2*np.pi)
+
+plt.subplot(212)
+plt.plot(spikes.restrict(rem_ep).to_tsd("pref_ang"), '|')
 
 
 # %%
@@ -223,7 +239,7 @@ plt.plot(tuning_curves[7])
 plt.plot(tuning_curves[20])
 plt.subplot(122)
 plt.plot(cc_wake[(7, 20)])
-plt.show()
+
 
 
 
@@ -238,7 +254,7 @@ plt.plot(tuning_curves[7])
 plt.plot(tuning_curves[26])
 plt.subplot(122)
 plt.plot(cc_wake[(7, 26)])
-plt.show()
+
 
 # %%
 # Pairwise correlation were computed during wakefulness. The activity of the neurons was also recorded during sleep.
@@ -258,7 +274,7 @@ plt.subplot(132)
 plt.plot(cc_wake[(7, 20)])
 plt.subplot(133)
 plt.plot(cc_sleep[(7, 20)])
-plt.show()
+
  
 # %%
 
@@ -270,10 +286,64 @@ plt.subplot(132)
 plt.plot(cc_wake[(7, 26)])
 plt.subplot(133)
 plt.plot(cc_sleep[(7, 26)])
-plt.show()
+
 
 
 # %%
+# ## Compute perievent {.strip-code,.keep-text}
+#
+# Sometimes, some events occurs during recording such as rewards. There was no particular events during this recording but we can look for when the head-direction is close to a particular direction as an event.
+
+#{.keep-code}
+
+plt.figure()
+plt.plot(tuning_curves[9])
+plt.axvline(1.5)
+
+crossing_times = np.cos(angle).threshold(np.cos(1.5), "below").time_support.starts
+
+
+# %%
+# **Question:** Can you compute a perievent time histogram around the timestamps defined in `crossing_times` for neuron 9?
+
+peth = nap.compute_perievent(spikes[9], crossing_times, minmax=(-2, 2))
+
+# %%
+# **Question:** ...and plot the spikes?
+
+plt.figure()
+plt.plot(peth.to_tsd(), '|')
+
+# %%
+# **Question:** Can you compute the mean firing rate of the PETH around `crossing_times` in bins of 100 ms?
+
+mean_fr = np.mean(peth.count(0.1)/0.1, 1)
+
+# %%
+# **Question:** ... and plot it?
+
+plt.figure()
+plt.subplot(211)
+plt.plot(peth.to_tsd(), '|')
+plt.subplot(212)
+plt.plot(mean_fr)
+
+# %%
+# Is this a strong effect? We would like to compare this to surrogate dataset.
+#
+# **Question:** Shuffling the spike trains, can you generate a mean random PETH to compare to the true mean PETH?
+
+rand_ts = nap.shuffle_ts_intervals(spikes[9])
+rand_peth = nap.compute_perievent(rand_ts, crossing_times, minmax=(-2, 2))
+
+plt.figure()
+plt.subplot(211)
+plt.plot(peth.to_tsd(), '|')
+plt.subplot(212)
+plt.plot(mean_fr)
+plt.plot(np.mean(rand_peth.count(0.1)/0.1, 1))
+
+
 
 
 
