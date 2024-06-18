@@ -38,6 +38,10 @@ jobs:
         # for some reason, pynajax being present causes mkdocs build to fail,
         # but only mkdocs build, and only on the github action
         pip uninstall pynajax -y
+    - name: Install llvmpipe and lavapipe for offscreen canvas
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install --no-install-recommends -y libegl1-mesa libgl1-mesa-dri libxcb-xfixes0-dev mesa-vulkan-drivers
 
     - name: preprocess
       run: |
