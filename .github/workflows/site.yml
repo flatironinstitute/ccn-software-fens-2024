@@ -38,6 +38,10 @@ jobs:
         # for some reason, pynajax being present causes mkdocs build to fail,
         # but only mkdocs build, and only on the github action
         pip uninstall pynajax -y
+    - name: Install llvmpipe and lavapipe for offscreen canvas
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install --no-install-recommends -y libegl1-mesa libgl1-mesa-dri libxcb-xfixes0-dev mesa-vulkan-drivers
 
     - name: preprocess
       run: |
@@ -50,7 +54,7 @@ jobs:
     - name: Build site
       # In order to reduce interval tqdm updates (so that rendered output is less
       # messy), set env variable `TQDM_MININTERVAL=5`.
-      run: TQDM_MININTERVAL=5 mkdocs build -d _site/
+      run: TQDM_MININTERVAL=5 WGPU_FORCE_OFFSCREEN=1 mkdocs build -d _site/
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3

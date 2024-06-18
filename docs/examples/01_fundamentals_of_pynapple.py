@@ -15,7 +15,7 @@ The pynapple documentation can be found [here](https://pynapple-org.github.io/py
 The documentation for objects and method of the core of pynapple is [here](https://pynapple-org.github.io/pynapple/reference/core/).
 
 
-Let's start by importing the pynapple package and matplotlib to see if everything is correctly installed. 
+Let's start by importing the pynapple package and matplotlib to see if everything is correctly installed.
 If an import fails, you can do `!pip install pynapple matplotlib` in a cell to fix it.
 """
 # %%
@@ -44,12 +44,12 @@ random_times_3 = np.sort(np.random.uniform(10, 80, 100))
 starts_1 = np.array([10000, 60000, 90000]) # starts of an epoch in `ms`
 ends_1 = np.array([20000, 80000, 95000]) # ends in `ms`
 
-# %% 
+# %%
 # ## Instantiate pynapple objects {.strip-code,.keep-text}
 #
 # This is a lot of variables to carry around. pynapple can help reduce the size of the workspace. Here we will instantiate all the different pynapple objects with the variables created above.
 #
-# Let's start with the simple ones. 
+# Let's start with the simple ones.
 #
 # **Question:** Can you instantiate the right pynapple objects for `var1`, `var2` and `var3`? Objects should be named respectively `tsd1`, `tsd2` and `tsd3`. Don't forget the column name for `var2`.
 
@@ -78,7 +78,7 @@ print(ep)
 
 # %%
 # The experiment generated a set of timestamps from 3 different channels.
-#  
+#
 # **Question:** Can you instantiate the corresponding pynapple object (`ts1`, `ts2`, `ts3`) for each one of them?
 
 ts1 = nap.Ts(t=random_times_1)
@@ -120,8 +120,8 @@ print(tsgroup.time_support)
 print(tsgroup.rate)
 
 # %%
-# Now you realized the variable `tsd1` has some noise. The good signal is between 10 and 30 seconds and  50 and 100. 
-# 
+# Now you realized the variable `tsd1` has some noise. The good signal is between 10 and 30 seconds and  50 and 100.
+#
 # **Question:** Can you create an `IntervalSet` object called `ep_signal` and use it to restrict the variable `tsd1`?
 
 ep_signal = nap.IntervalSet(start=[10, 50], end=[30, 100])
@@ -139,11 +139,11 @@ print(tsd1.time_support)
 # ## Numpy & pynapple {.strip-code,.keep-text}
 #
 # Pynapple objects behaves very similarly like numpy array. They can be sliced with the following syntax :
-# 
+#
 #   `tsd[0:10] # First 10 elements`
 #
 # Arithmetical operations are available as well :
-# 
+#
 #   `tsd = tsd + 1`
 #
 # Finally numpy functions works directly. Let's imagine `tsd3` is a movie with frame size (4,5).
@@ -195,7 +195,7 @@ print(tsgroup)
 # %%
 # After initialization, metainformation can only be added. Running the following command will raise an error: `tsgroup[3] = np.random.randn(3)`.
 #
-# From there, you can slice using the Index column (i.e. `tsgroup[0]`->nap.Ts, `tsgroup[[0,2]]` -> nap.TsGroup). 
+# From there, you can slice using the Index column (i.e. `tsgroup[0]`->nap.Ts, `tsgroup[[0,2]]` -> nap.TsGroup).
 #
 # But more interestingly you can also slice using the metadata. There are multiple methods for it : `getby_category`, `getby_threshold`, `getby_intervals`.
 #
@@ -209,7 +209,7 @@ tsgroup[tsgroup.rate < 1.0]
 # %%
 # ## Core functions of pynapple {.strip-code,.keep-text}
 #
-# This part focuses on the most important core functions of pynapple. 
+# This part focuses on the most important core functions of pynapple.
 #
 # **Question:** Using the `count` function, can you count the number of events within 1 second bins for `tsgroup` over the `ep_signal` intervals?
 
@@ -244,9 +244,9 @@ plt.plot(ts2.fillna(0), 'o')
 
 
 # %%
-# **Question:** 
-# One important aspect of data analysis is to bring data to the same size. Pynapple provides the `bin_average` function to downsample data. 
-# 
+# **Question:**
+# One important aspect of data analysis is to bring data to the same size. Pynapple provides the `bin_average` function to downsample data.
+#
 # **Question:** Can you downsample `tsd2` to one time point every 5 seconds?
 
 new_tsd2 = tsd2.bin_average(5.0)
@@ -262,7 +262,7 @@ plt.plot(new_tsd2['tomato'], 'o-')
 # %%
 # For `tsd1`, you want to find all the epochs for which the value is above 0.0. Pynapple provides the function `threshold` to get 1 dimensional time series above or below a certain value.
 #
-# **Question: Can you print the epochs for which `tsd1` is above 0.0?** 
+# **Question: Can you print the epochs for which `tsd1` is above 0.0?**
 
 ep_above = tsd1.threshold(0.0).time_support
 
@@ -297,8 +297,6 @@ plt.figure()
 plt.plot(tsd2['banana'])
 plt.plot(new_banana)
 
-
-
 # %%
 # `pynajax` is a package that can be used as a replacement for `numba` when accelerating functions.
 # To install `pynajax`, you can run the following cell.
@@ -311,12 +309,10 @@ nap.nap_config.set_backend("jax")
 
 new_banana = tsd2['banana'].convolve(kernel)
 
-
 # %%
 # ## Important
 #
 # **Question:** Does this work?
-# 
 # If not, please ask a TA.
 
 # {.keep-code}
