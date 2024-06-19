@@ -517,8 +517,8 @@ print(f"Convolved count shape: {convolved_count.shape}")
 # This is an all-to-all neurons model.
 # We can use the class `PopulationGLM` to fit the whole population at once.
 #
-# How many weights are we learning in this case? We have 8 x 19 = 152 features, for 19 neurons,
-# for a total of 2888 weights, i.e. parameter space is still quite large.
+# How many weights are we learning in this case? We have 8 x 19 = 152 features for each of our 19 neurons,
+# for a total of 2888 weights, so the parameter space is still quite large.
 # A safe approach to further mitigate over-fitting is to use a Ridge (L2) penalization.
 #
 # !!! note
@@ -529,7 +529,7 @@ print(f"Convolved count shape: {convolved_count.shape}")
 #
 # <div class="notes">
 # - Fit a `PopulationGLM`
-# - Use Ridge regularization with a `regularization_strength=0.1`
+# - Use Ridge regularization with a `regularizer_strength=0.1`
 # - Print the shape of the estimated coefficients.
 # </div>
 
@@ -540,7 +540,7 @@ model = nmo.glm.PopulationGLM(
 
 print(f"Model coefficients shape: {model.coef_.shape}")
 
-
+# %%
 # #### Comparing model predictions.
 # <div class="notes">
 # - Predict the firing rate of each neuron
@@ -658,20 +658,8 @@ workshop_utils.plotting.plot_coupling(responses, tuning)
 # Let's see how to implement the K-Fold with NeMoS and scikit-learn.
 #
 # <div class="notes">
-# - Define a grid of regularization strengths.
-# </div>
-
-# {.keep-code}
-# define a grid of parameters for the search
-param_grid = dict(regularizer__regularizer_strength=np.logspace(-3, 0, 4))
-param_grid
-
-# %%
-# !!! note
-#     If a key in `param_grid` is in the form "parameter__subparameter", scikit-learn will access
-#     and set the values of the "model.parameter.subparameter" attribute.
-# <div class="notes">
 # - Instantiate the PopulationGLM
+# - Define a grid of regularization strengths.
 # - Instantiate and fit the GridSearchCV with 2 folds.
 # </div>
 
@@ -681,10 +669,30 @@ model = nmo.glm.PopulationGLM(
     regularizer=nmo.regularizer.Ridge("LBFGS")
 )
 
+# define a grid of parameters for the search
+param_grid = dict(regularizer__regularizer_strength=np.logspace(-3, 0, 4))
+param_grid
+
 # define a GridSearch cross-validation from scikit-learn
 # with 2-folds
 k_fold = GridSearchCV(model, param_grid=param_grid, cv=2)
 
+# %%
+# !!! note
+#
+#     The keys in `param_grid` use a special syntax of the form
+#     `<parameter>__<subparameter>`. This tells scikit-learn to access and set the
+#     values of the `model.parameter.subparameter` attribute.
+#
+#     See the [scikit-learn
+#     docs](https://scikit-learn.org/stable/modules/grid_search.html#composite-estimators-and-parameter-spaces)
+#     for more details.
+#
+# <div class="notes">
+# - Run cross-validation!
+# </div>
+
+# {.keep-code}
 # fit the cross-validated model
 k_fold.fit(convolved_count, count)
 
