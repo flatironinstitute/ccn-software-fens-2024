@@ -10,7 +10,6 @@ import subprocess
 def main():
     repo_dir = pathlib.Path(__file__).parent.parent
     nb_dir = repo_dir / 'notebooks'
-    nb_dir.mkdir(exist_ok=True)
     scripts_dir = repo_dir / 'scripts'
     src_dir = repo_dir / 'src'
     subprocess.run(['python', scripts_dir / 'strip_text.py'], cwd=repo_dir)

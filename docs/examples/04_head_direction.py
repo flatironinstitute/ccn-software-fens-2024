@@ -436,7 +436,7 @@ print(self_connection.shape)
 
 # %%
 # We can now compare this model that based on the raw count history.
-# %%
+#
 # <div class="notes">
 # - Compare with the raw count history model.
 # </div>

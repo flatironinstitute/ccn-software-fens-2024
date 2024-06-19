@@ -33,18 +33,28 @@ jobs:
         python-version: '3.11'
 
     - name: Install python dependencies
-      run: pip install .
+      run: |
+        pip install .
+        # for some reason, pynajax being present causes mkdocs build to fail,
+        # but only mkdocs build, and only on the github action
+        pip uninstall pynajax -y
+    - name: Install llvmpipe and lavapipe for offscreen canvas
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install --no-install-recommends -y libegl1-mesa libgl1-mesa-dri libxcb-xfixes0-dev mesa-vulkan-drivers
 
     - name: preprocess
       run: |
         python scripts/strip_text.py
         # download data first, so we don't have a race for each notebook
         python src/workshop_utils/fetch.py
+        # remove keep-code from the full tutorial files before rendering
+        sed -i '/keep-code/d' docs/examples/*py
 
     - name: Build site
       # In order to reduce interval tqdm updates (so that rendered output is less
       # messy), set env variable `TQDM_MININTERVAL=5`.
-      run: TQDM_MININTERVAL=5 mkdocs build -d _site/
+      run: TQDM_MININTERVAL=5 WGPU_FORCE_OFFSCREEN=1 mkdocs build -d _site/
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
