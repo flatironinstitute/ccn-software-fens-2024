@@ -649,11 +649,6 @@ workshop_utils.plotting.plot_coupling(responses, tuning)
 # To select a hyperparameter, you can run a K-fold over a grid of hyperparameters,
 # and pick the one with the best average score.
 #
-# !!! note "Model Evaluation"
-#     If you want to report the model performance in a paper, you may leave an extra chunk
-#     of data out, the evaluation set. This set can be used to compute a final score for the model
-#     with the best hyperparameters.
-#
 # ## K-fold with NeMoS and scikit-learn {.strip-code}
 # Let's see how to implement the K-Fold with NeMoS and scikit-learn.
 #
@@ -694,6 +689,7 @@ k_fold.fit(convolved_count, count)
 # - Print the best parameters.
 # </div>
 
+# {.keep-code}
 print(f"Best regularization strength: "
       f"{k_fold.best_params_['regularizer__regularizer_strength']}")
 

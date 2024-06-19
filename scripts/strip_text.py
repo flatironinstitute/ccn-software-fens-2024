@@ -61,7 +61,7 @@ def convert(path: str, follow_strip_classes=True):
                 else:
                     if any(['.keep-text' in h[1] for h in most_recent_header_chain]):
                         block.append(line)
-                    if any(['.keep-paragraph' in h[1] for h in most_recent_header_chain]):
+                    elif any(['.keep-paragraph' in h[1] for h in most_recent_header_chain]):
                         # copy paragraph
                         if not in_paragraph:
                             in_paragraph = line.strip().startswith("<p ") and line.strip().endswith(">")
