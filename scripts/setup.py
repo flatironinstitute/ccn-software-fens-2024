@@ -19,7 +19,7 @@ def main():
     for f in gen_nb_dir.glob('*ipynb'):
         shutil.copy(f.absolute(), (nb_dir / f.name).absolute())
     fpl_test_nb = repo_dir / 'site' / 'generated' / 'setup' / 'test_fastplotlib_installation.ipynb'
-    shutil.copy(fpl_test_nb.copy(), (nb_dir / fpl_test_nb.name).absolute())
+    shutil.copy(fpl_test_nb.absolute(), (nb_dir / fpl_test_nb.name).absolute())
 
 
 if __name__ == '__main__':
