@@ -622,7 +622,7 @@ workshop_utils.plotting.plot_coupling(responses, tuning)
 
 
 # %%
-# ## K-Fold Cross-Validation
+# ## K-fold Cross-Validation {.keep-paragraph}
 #
 # <p align="center">
 #   <img src="../../../assets/grid_search_cross_validation.png" alt="Grid Search Cross Validation" style="max-width: 80%; height: auto;">
@@ -630,31 +630,37 @@ workshop_utils.plotting.plot_coupling(responses, tuning)
 #   <em>K-fold cross-validation (from <a href="https://scikit-learn.org/stable/modules/cross_validation.html" target="_blank">scikit-learn docs</a>)</em>
 # </p>
 #
-# Here, we provided a reasonable regularization strength value for the Ridge regression for you.
-# In general, figuring out a "good" value for this hyperparameter is crucial for your model quality.
+#
+# Here, we selected a reasonable regularization strength for the Ridge-GLM for you.
+# In general, figuring out a "good" value for this hyperparameter is crucial for model fit quality.
 # Too low, and you may over-fit (high variance), too high, and you may
-# under-fit (high bias), i.e. learning very small weights that do not capture the neural activity.
+# under-fit (high bias), i.e. learning very small weights that do not capture neural activity.
 #
-# What you aim for is to strike a balance between the variance and the bias. To quantitatively assess
-# how well the model is performing is to compute its log-likelihood score over some
-# left-out data (cross-validation).
+# What you aim for is to strike a balance between the variance and the bias. Quantitatively, you can assess
+# how well your model is performing by evaluating the log-likelihood score over some
+# left-out data.
 #
-# A common approach for a robust cross-validation scoring is the "K-fold" cross validation, see figure above.
-# In a K-fold cross-validation, you'll split the data in K-chunks of equal size. You then you fit the
-# model on K-1 chunks, and score the left-out one.
-# You'll repeat the procedure K-times leaving out a different chunk each time.
-# At the end of the procedure, you can average out the K-scores, to get your estimate of the model
+# A common approach is the "K-fold" cross validation, see figure above.
+# In a K-fold cross-validation, you'll split the data in K chunks of equal size. You then fit the
+# model on K-1 chunks, and score it on the left-out one.
+# You'll repeat the procedure K-times leaving out a different chunk at each iteration.
+# At the end of the procedure, you can average the K-scores, to get a robust estimate of the model
 # performance.
-# You can perform grid search over multiple hyperparameters, and pick the one with the best average
-# score.
+# To select a hyperparameter, you can run a K-fold over a grid of hyperparameters,
+# and pick the one with the best average score.
 #
 # !!! note "Model Evaluation"
 #     If you want to report the model performance in a paper, you may leave an extra chunk
-#     of data out, namely the evaluation set, to score the model with the best hyperparameters on it.
+#     of data out, the evaluation set. This set can be used to compute a final score for the model
+#     with the best hyperparameters.
 #
-# ## K-Fold with NeMoS and scikit-learn
+# ## K-fold with NeMoS and scikit-learn {.strip-code}
 # Let's see how to implement the K-Fold with NeMoS and scikit-learn.
-
+#
+# <div class="notes">
+# - Define a grid of regularization strengths.
+# </div>
+#
 # define a grid of parameters for the search
 param_grid = dict(regularizer__regularizer_strength=np.logspace(-3, 0, 4))
 param_grid
@@ -663,6 +669,10 @@ param_grid
 # !!! note
 #     If a key in `param_grid` is in the form "parameter__subparameter", scikit-learn will access
 #     and set the values of the "model.parameter.subparameter" attribute.
+# <div class="notes">
+# - Instantiate the PopulationGLM
+# - Instantiate and fit the GridSearchCV with 2 folds.
+# </div>
 
 # define the model
 model = nmo.glm.PopulationGLM(
@@ -678,11 +688,14 @@ k_fold.fit(convolved_count, count)
 
 # %%
 # We can inspect the K-fold result and print best parameters.
+# <div class="notes">
+# - Print the best parameters.
+# </div>
 
 print(f"Best regularization strength: "
       f"{k_fold.best_params_['regularizer__regularizer_strength']}")
 
-# %%
+# %% {.keep-text}
 # ## Exercises:
 # - Plot the weights and rate predictions.
 # - What happens if you use 5 folds?

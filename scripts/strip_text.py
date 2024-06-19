@@ -43,6 +43,7 @@ def convert(path: str, follow_strip_classes=True):
     for block_type, block_txt, line_no in source_blocks:
         if block_type == 'text':
             block = []
+            in_paragraph = False
             for line in block_txt.splitlines():
                 header = MD_TITLE_MARKER.search(line)
                 if header:
@@ -60,6 +61,14 @@ def convert(path: str, follow_strip_classes=True):
                 else:
                     if any(['.keep-text' in h[1] for h in most_recent_header_chain]):
                         block.append(line)
+                    if any(['.keep-paragraph' in h[1] for h in most_recent_header_chain]):
+                        # copy paragraph
+                        if not in_paragraph:
+                            in_paragraph = line.strip().startswith("<p ") and line.strip().endswith(">")
+                        if in_paragraph:
+                            block.append(line)
+                        if in_paragraph:
+                            in_paragraph = not line.strip() == "</p>"
                     if DIV_END.search(line):
                         in_note = False
                         block.append('')
