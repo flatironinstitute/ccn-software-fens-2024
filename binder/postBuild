@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# for wgpu and thus, fasptlotlib
+apt install xserver-xorg-core mesa-vulkan-drivers libvulkan1 libjpeg-turbo8-dev libturbojpeg0-dev
+
 CONDA_OVERRIDE_CUDA="12.3" conda env update -p $NB_PYTHON_PREFIX --file environment-cuda.yml
 conda activate fens2024
 conda clean --all -y
