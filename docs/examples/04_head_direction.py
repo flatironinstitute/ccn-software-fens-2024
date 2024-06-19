@@ -660,7 +660,8 @@ workshop_utils.plotting.plot_coupling(responses, tuning)
 # <div class="notes">
 # - Define a grid of regularization strengths.
 # </div>
-#
+
+# {.keep-code}
 # define a grid of parameters for the search
 param_grid = dict(regularizer__regularizer_strength=np.logspace(-3, 0, 4))
 param_grid
@@ -674,6 +675,7 @@ param_grid
 # - Instantiate and fit the GridSearchCV with 2 folds.
 # </div>
 
+# {.keep-code}
 # define the model
 model = nmo.glm.PopulationGLM(
     regularizer=nmo.regularizer.Ridge("LBFGS")
