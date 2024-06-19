@@ -68,7 +68,7 @@ def convert(path: str, follow_strip_classes=True):
                         if in_paragraph:
                             block.append(line)
                         if in_paragraph:
-                            in_paragraph = not line.strip() == "</p>"
+                            in_paragraph = not line.strip().endswith("</p>")
                     if DIV_END.search(line):
                         in_note = False
                         block.append('')
