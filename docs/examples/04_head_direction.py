@@ -7,7 +7,7 @@
 
 - Learn how to add history-related predictors to NeMoS GLM
 - Learn how to reduce over-fitting with `Basis`
-- Learn how to use `Basis` objects with convolution
+- Learn how to cross-validate with NeMoS + scikit-learn
 
 """
 
@@ -18,6 +18,7 @@ import warnings
 import workshop_utils
 
 import nemos as nmo
+from sklearn.model_selection import GridSearchCV
 
 warnings.filterwarnings("ignore")
 
@@ -243,15 +244,14 @@ workshop_utils.plotting.plot_features(input_feature, count.rate, suptitle)
 # %%
 # As you may see, the time axis is backward, this happens because convolution flips the time axis.
 # This is equivalent, as we can interpret the result as how much a spike will affect the future rate.
-# In the previous tutorial our feature was 1-dimensional (just the current), now
-# instead the feature dimension is 80, because our bin size was 0.01 sec and the window size is 0.8 sec.
+# The resulting feature dimension is 80, because our bin size was 0.01 sec and the window size is 0.8 sec.
 # We can learn these weights by maximum likelihood by fitting a GLM.
 
 # %%
 # #### Fitting the Model
 #
-# When working a real dataset, it is good practice to train your models on a chunk of the data and
-# use the other chunk to assess the model performance. This process is known as "cross-validation".
+# When working with a real dataset, it is good practice to train your models on a chunk of the data and
+# use the other chunk to assess the model performance. This process is known as **"cross-validation"**.
 # There is no unique strategy on how to cross-validate your model; What works best
 # depends on the characteristic of your data (time series or independent samples,
 # presence or absence of trials...), and that of your model. Here, for simplicity use the first
@@ -435,19 +435,6 @@ self_connection = np.matmul(basis_kernels, model_basis.coef_)
 print(self_connection.shape)
 
 # %%
-# We can now compare this model that based on the raw count history.
-#
-# <div class="notes">
-# - Compare with the raw count history model.
-# </div>
-
-# {.keep-code}
-fig = workshop_utils.plotting.plot_and_compare_weights(
-    [model.coef_, model_second_half.coef_, self_connection],
-    ["GLM raw history 1st Half", "GLM raw history 2nd Half", "GLM basis 1st half"],
-    count.rate)
-
-# %%
 # Let's check if our new estimate does a better job in terms of over-fitting. We can do that
 # by visual comparison, as we did previously. Let's fit the second half of the dataset.
 #
@@ -455,13 +442,18 @@ fig = workshop_utils.plotting.plot_and_compare_weights(
 # <div class="notes">
 # - Fit the other half of the data.
 # </div>
-model_basis_second_half = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
-model_basis_second_half.fit(conv_spk.restrict(second_half), neuron_count.restrict(second_half))
+model_basis_second_half = nmo.glm.GLM(
+    regularizer=nmo.regularizer.UnRegularized("LBFGS")
+)
+model_basis_second_half.fit(
+    conv_spk.restrict(second_half), neuron_count.restrict(second_half)
+)
 
 # compute responses for the 2nd half fit
 self_connection_second_half = np.matmul(basis_kernels, model_basis_second_half.coef_)
 
 # %%
+# We can now compare this model that based on the raw count history.
 #
 # <div class="notes">
 # - Plot and compare the results.
@@ -523,7 +515,11 @@ print(f"Convolved count shape: {convolved_count.shape}")
 # %%
 # #### Fitting the Model
 # This is an all-to-all neurons model.
-# We are using the class `PopulationGLM` to fit the whole population at once.
+# We can use the class `PopulationGLM` to fit the whole population at once.
+#
+# How many weights are we learning in this case? We have 8 x 19 = 152 features, for 19 neurons,
+# for a total of 2888 weights, i.e. parameter space is still quite large.
+# A safe approach to further mitigate over-fitting is to use a Ridge (L2) penalization.
 #
 # !!! note
 #     Once we condition on past activity, log-likelihood of the population is the sum of the log-likelihood
@@ -533,6 +529,7 @@ print(f"Convolved count shape: {convolved_count.shape}")
 #
 # <div class="notes">
 # - Fit a `PopulationGLM`
+# - Use Ridge regularization with a `regularization_strength=0.1`
 # - Print the shape of the estimated coefficients.
 # </div>
 
@@ -544,13 +541,6 @@ model = nmo.glm.PopulationGLM(
 print(f"Model coefficients shape: {model.coef_.shape}")
 
 
-# %%
-# !!! note "Ridge Regularization"
-#     Ridge regularization is a common practice in regression problems for preventing over-fitting. It works
-#     by biasing the parameters towards smaller values. Consider using Ridge regularization whenever the
-#     parameter space is large or the number of samples is limited. Deciding the type and the amount regularization
-#     is a broad topic, here is where you can get started xxx!
-#
 # #### Comparing model predictions.
 # <div class="notes">
 # - Predict the firing rate of each neuron
@@ -629,4 +619,72 @@ print(responses.shape)
 
 # {.keep-code}
 workshop_utils.plotting.plot_coupling(responses, tuning)
+
+
+# %%
+# ## K-Fold Cross-Validation
+#
+# <p align="center">
+#   <img src="../../../assets/grid_search_cross_validation.png" alt="Grid Search Cross Validation" style="max-width: 80%; height: auto;">
+#   <br>
+#   <em>K-fold cross-validation (from <a href="https://scikit-learn.org/stable/modules/cross_validation.html" target="_blank">scikit-learn docs</a>)</em>
+# </p>
+#
+# Here, we provided a reasonable regularization strength value for the Ridge regression for you.
+# In general, figuring out a "good" value for this hyperparameter is crucial for your model quality.
+# Too low, and you may over-fit (high variance), too high, and you may
+# under-fit (high bias), i.e. learning very small weights that do not capture the neural activity.
+#
+# What you aim for is to strike a balance between the variance and the bias. To quantitatively assess
+# how well the model is performing is to compute its log-likelihood score over some
+# left-out data (cross-validation).
+#
+# A common approach for a robust cross-validation scoring is the "K-fold" cross validation, see figure above.
+# In a K-fold cross-validation, you'll split the data in K-chunks of equal size. You then you fit the
+# model on K-1 chunks, and score the left-out one.
+# You'll repeat the procedure K-times leaving out a different chunk each time.
+# At the end of the procedure, you can average out the K-scores, to get your estimate of the model
+# performance.
+# You can perform grid search over multiple hyperparameters, and pick the one with the best average
+# score.
+#
+# !!! note "Model Evaluation"
+#     If you want to report the model performance in a paper, you may leave an extra chunk
+#     of data out, namely the evaluation set, to score the model with the best hyperparameters on it.
+#
+# ## K-Fold with NeMoS and scikit-learn
+# Let's see how to implement the K-Fold with NeMoS and scikit-learn.
+
+# define a grid of parameters for the search
+param_grid = dict(regularizer__regularizer_strength=np.logspace(-3, 0, 4))
+
+# %%
+# !!! note
+#     If a key in `param_grid` is in the form "parameter__subparameter", scikit-learn will access
+#     and set the values of the "model.parameter.subparameter" attribute.
+
+# define the model
+model = nmo.glm.PopulationGLM(
+    regularizer=nmo.regularizer.Ridge("LBFGS")
+)
+
+# define a GridSearch cross-validation from scikit-learn
+# with 2-folds
+k_fold = GridSearchCV(model, param_grid=param_grid, cv=2)
+
+# fit the cross-validated model
+k_fold.fit(convolved_count, count)
+
+# %%
+# We can inspect the K-fold result and print best parameters.
+
+print(f"Best regularization strength: {k_fold.best_params_['regularizer__regularizer_strength']}")
+
+# %%
+# ## Exercises:
+# - Plot the weights and rate predictions.
+# - What happens if you use 5 folds?
+# - What happen if you cross-validate each neuron individually?
+#   Do you select the same hyperparameter for every neuron or not?
+
 
