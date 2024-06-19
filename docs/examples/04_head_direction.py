@@ -657,6 +657,7 @@ workshop_utils.plotting.plot_coupling(responses, tuning)
 
 # define a grid of parameters for the search
 param_grid = dict(regularizer__regularizer_strength=np.logspace(-3, 0, 4))
+param_grid
 
 # %%
 # !!! note
@@ -678,7 +679,8 @@ k_fold.fit(convolved_count, count)
 # %%
 # We can inspect the K-fold result and print best parameters.
 
-print(f"Best regularization strength: {k_fold.best_params_['regularizer__regularizer_strength']}")
+print(f"Best regularization strength: "
+      f"{k_fold.best_params_['regularizer__regularizer_strength']}")
 
 # %%
 # ## Exercises:
