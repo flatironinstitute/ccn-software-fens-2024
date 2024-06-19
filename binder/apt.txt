@@ -1,0 +1,5 @@
+xserver-xorg-core
+mesa-vulkan-drivers
+libvulkan1
+libjpeg-turbo8-dev
+libturbojpeg0-dev
