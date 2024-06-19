@@ -697,8 +697,8 @@ k_fold.fit(convolved_count, count)
 print(f"Best regularization strength: "
       f"{k_fold.best_params_['regularizer__regularizer_strength']}")
 
-# %% {.keep-text}
-# ## Exercises:
+# %%
+# ## Exercises {.keep-text}
 # - Plot the weights and rate predictions.
 # - What happens if you use 5 folds?
 # - What happen if you cross-validate each neuron individually?
