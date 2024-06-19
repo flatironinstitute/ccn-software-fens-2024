@@ -102,7 +102,7 @@ image_graphic.reset_vmin_vmax()
 # **Question:** Can you change the data of the image to be random data of the same shape? Hint: Use `np.random.rand()`
 # to create the new data.
 #
-# Note: At first you should see a solid image. You will also need to rest the vmin/vmax.
+# Note: At first you should see a solid image. You will need to reset the vmin/vmax of the image.
 
 # create new random data of the same shape as the original image
 new_data = np.random.rand(*image_graphic.data.value.shape)
@@ -111,7 +111,8 @@ new_data = np.random.rand(*image_graphic.data.value.shape)
 image_graphic.data = new_data
 
 # %%
-# **Question:** Can you change the colormap of the image? See [here](https://matplotlib.org/stable/gallery/color/colormap_reference.html) for a list of colormaps.
+# **Question:** Can you change the colormap of the image? See
+# [here](https://matplotlib.org/stable/gallery/color/colormap_reference.html) for a list of colormaps.
 
 image_graphic.cmap = "hsv"
 
@@ -145,7 +146,7 @@ def update_data(plot_instance):
     plot_instance[0, 0]["random-image"].data = new_data
 
 
-#add this as an animation function
+# add this as an animation function
 fig_v.add_animations(update_data)
 
 fig_v.show(sidecar=True)
@@ -207,7 +208,7 @@ practice_fig.close()
 # %%
 # ## 2D Line Plots
 #
-# This example plots a sine wave, cosine wave, and ricker wavelet and demonstrates how **Graphic Properties** can be
+# This example plots a sine wave, cosine wave, and ricker wavelet and demonstrates how **Graphic properties** can be
 # modified by slicing!
 
 # %%
@@ -263,14 +264,12 @@ cosine_graphic.colors[60] = "w"
 # indexing to assign colormaps to entire lines or segments
 sinc_graphic.cmap[10:50] = "gray"
 
-
 # %%
 
-# use a qualitative cmap (https://matplotlib.org/stable/_images/sphx_glr_colormaps_006.png)
+# setting the colormap based on particular values
 sine_graphic.cmap = "plasma"
 # set the cmap transform
 sine_graphic.cmap.transform = [4] * 25 + [1] * 25 + [3] * 25 + [8] * 25
-
 
 # %%
 #
@@ -308,8 +307,8 @@ sine_graphic.cmap = "hsv"
 sinc_graphic.colors[:50] = "g"
 
 # %%
-# **Question:** Can you to change the color of last 50 data points of the cosine_graphic to equal the colors of the
-# last 50 data points of the sine_graphic?
+# **Question:** Can you to change the color of last 50 points of the cosine_graphic to equal the colors of the
+# last 50 points of the sine_graphic?
 
 cosine_graphic.colors[50:] = sine_graphic.colors[50:]
 
@@ -339,9 +338,14 @@ def callback_func(ev):
 
 # %%
 
+# first set the color of the sine and cosine wave to white so that we can better see the changes
+cosine_graphic.colors = "w"
+sine_graphic.colors = "w"
+
+
 # when the cosine graphic colors change, will also update the sine_graphic colors
 def change_colors(ev):
-    sine_graphic.colors[ev.info["key"]] = "w"
+    sine_graphic.colors[ev.info["key"]] = "magenta"
 
 
 cosine_graphic.add_event_handler(change_colors, "colors")
@@ -366,12 +370,10 @@ def make_circle(center, radius: float, n_points: int = 75) -> np.ndarray:
     return np.column_stack([xs, ys]) + center
 
 
-# this makes 5 circles, so we can create 5 cmap values, so it will use these values to set the
-# color of the line based by using the cmap as a LUT with the corresponding cmap_value
+# this makes 5 circles
 circles = list()
 for x in range(0, 50, 10):
     circles.append(make_circle(center=(x, 0), radius=4, n_points=100))
-
 
 # %%
 
@@ -386,19 +388,25 @@ fig.show()
 
 # %%
 
-# get graphic that is clicked and change the color
+# get the nearest graphic that is clicked and change the color
 def click_event(ev):
-    # reset the colors
+    # reset colors
     circles_graphic.cmap = "tab10"
 
-    # change clicked circle color
-    ev.graphic.colors = "w"
+    # map the click position to world coordinates
+    xy = fig[0, 0].map_screen_to_world(ev)[:-1]
+
+    # get the nearest graphic to the position
+    nearest = fpl.utils.get_nearest_graphics(xy, circles_graphic)[0]
+
+    # change the closest graphic color to white
+    nearest.colors = "w"
 
 
 # %%
 
-# for each circle in the collection, add click event handler
-circles_graphic.add_event_handler(click_event, "click")
+# add event handler to the renderer
+fig[0, 0].renderer.add_event_handler(click_event, "click")
 
 
 # %%
