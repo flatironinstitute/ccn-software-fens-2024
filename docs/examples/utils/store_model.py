@@ -22,7 +22,13 @@ class TimeStoreComponent:
     def multiplier(self) -> int | float | None:
         return self._multiplier
 
-    def __init__(self, subscriber, data=None, multiplier=None):
+    @property
+    def data_filter(self) -> callable | None:
+        if self._data_filter is None:
+            return self.data
+        return self._data_filter
+
+    def __init__(self, subscriber, data=None, data_filter=None, multiplier=None):
         """A TimeStore component of the time store."""
         if multiplier is None:
             multiplier = 1
@@ -36,6 +42,8 @@ class TimeStoreComponent:
             if not isinstance(data, (TsdFrame, TsdTensor)):
                 raise ValueError("If passing in `ImageGraphic` must provide associated `TsdFrame` to update data with.")
             self._data = data
+            if data_filter is not None:
+                self._data_filter = data_filter
 
 
 class TimeStore:
@@ -70,6 +78,7 @@ class TimeStore:
     def subscribe(self,
                   subscriber: ImageGraphic | LinearSelector | IntSlider | FloatSlider,
                   data: TsdFrame | TsdTensor = None,
+                  data_filter: callable = None,
                   multiplier: int | float = None) -> None:
         """
         Method for adding a subscriber to the store to be synchronized.
@@ -122,7 +131,11 @@ class TimeStore:
         for component in self.store:
             # update ImageGraphic data no matter what
             if isinstance(component.subscriber, ImageGraphic):
-                component.subscriber.data = component.data.get(self.time)
+                new_data = component.data_filter(component.data.get(self.time))
+                if new_data.shape != component.subscriber.data.shape:
+                    raise ValueError(f"data filter function: {component.data_filter} must return data in the same shape"
+                                     f"as the current data")
+                component.subscriber.data = new_data
             elif isinstance(component.subscriber, LinearSelector):
                 # only update if different
                 if abs(component.subscriber.selection - (self.time * component.multiplier)) > MARGIN:
