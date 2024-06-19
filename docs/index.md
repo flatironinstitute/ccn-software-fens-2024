@@ -47,6 +47,7 @@ Before the workshop, please try to complete the following steps. If you are unab
     ```shell
     python scripts/check_setup.py
     ```
+7. Confirm the installation of `fastplotlib` and associated libraries worked by running `jupyter lab`, opening up `notebooks/test_fastplotlib_installation.ipynb` and ensuring that you can run the notebook to completion without any errors.
 
 If `check_setup.py` tells you setup was successful, then you're good to go. Otherwise, please come to the installation help session in the hotel, Palais Saschen Coburg room IV, on Saturday, so everyone is ready to get started Sunday morning.
 
