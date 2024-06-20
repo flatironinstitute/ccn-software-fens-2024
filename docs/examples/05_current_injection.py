@@ -501,7 +501,7 @@ print(f"count shape: {count.shape}")
 #     of the existing dimensions?
 #
 #     In NeMoS, we fit Generalized Linear Models to a single neuron at a time. We'll
-#     discuss this more in the [following tutorial](../02_head_direction/), but briefly:
+#     discuss this more in the [following tutorial](../06_head_direction/), but briefly:
 #     you get the same answer whether you fit the neurons separately or simultaneously,
 #     and fitting them separately can make your life easier. We also provide a
 #     `PopulationGLM` object to fit an entirely population at once, if you prefer to do
