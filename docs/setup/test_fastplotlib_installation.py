@@ -62,8 +62,18 @@ fig[1,0].add_scatter(data=cloud, colors=colors)
 fig.show()
 
 # %%
+# The above figure should look like the following screenshot:
+#
+# ![Figure 1](../../assets/fpl_test_1.png)
+
+# %%
 # ### Test `ImageWidget`
 
 iw_data = np.random.rand(30, 512, 512)
 iw = fpl.ImageWidget(data=iw_data, cmap="viridis")
 iw.show()
+
+# %%
+# The above figure should look like the following screenshot:
+#
+# ![Figure 2](../../assets/fpl_test_2.png)
