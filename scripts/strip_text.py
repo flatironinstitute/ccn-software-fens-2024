@@ -102,11 +102,11 @@ def main(input_dir: str, output_dir: str, ignore_classes_dir: str):
     for f in glob.glob(os.path.join(input_dir, '*py')):
         blocks = convert(f, True)
         out_fn = os.path.split(f)[-1].replace('.py', '_users.py')
-        with open(os.path.join(output_dir, out_fn), 'w') as out_f:
+        with open(os.path.join(output_dir, out_fn), 'w', encoding='utf-8') as out_f:
             out_f.write('\n'.join(blocks))
         blocks = convert(f, False)
         out_fn = os.path.split(f)[-1].replace('.py', '_code.py')
-        with open(os.path.join(ignore_classes_dir, out_fn), 'w') as out_f:
+        with open(os.path.join(ignore_classes_dir, out_fn), 'w', encoding='utf-8') as out_f:
             out_f.write('\n'.join(blocks))
 
 
