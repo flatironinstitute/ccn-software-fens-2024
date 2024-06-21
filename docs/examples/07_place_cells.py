@@ -102,9 +102,6 @@ data = nap.TsdFrame(
 print(data)
 
 
-
-
-
 # %%
 # `data` is a `TsdFrame` that contains the position and phase. Before calling `compute_2d_tuning_curves` from pynapple to observe the theta phase precession, we will restrict the analysis to the place field of one neuron.
 #
@@ -281,7 +278,7 @@ pred_rate_1 = glm1.predict(X1)/bin_size
 # **Question:** Using the right pynapple function, can you compute a 2D tuning curves of "phase x position" can call it `glm1_pos_theta`?
 #
 
-glm1_pos_theta, xybins = nap.compute_2d_tuning_curves_continuous(
+glm1_position_phase, xybins = nap.compute_2d_tuning_curves_continuous(
     pred_rate_1, data, 30, ep=within_ep
 )
 
@@ -294,111 +291,106 @@ glm1_position = nap.compute_1d_tuning_curves_continuous(pred_rate_1, position, 5
 glm1_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_1, speed, 30)
 
 # %%
-# Let's display both tuning curves together. 
+# And we can plot both the 1D and the interaction.
 
 # {.keep-code}
 plt.figure()
 
-plt.subplot(121)
+plt.subplot(221)
 plt.title("position")
 plt.ylabel("rate (Hz)")
 plt.plot(glm1_position)
 plt.xlabel("cm/sec")
 
-plt.subplot(122)
+plt.subplot(222)
 plt.title("speed")
-plt.plot(glm1_position)
+plt.plot(glm1_speed)
 plt.xlabel("cm")
 
 
-# **Question:** Can you compute a 2D tuning curve with pynapple for caputring the interaction between `speed` and `position`?
+extent = (xybins[0][0], xybins[0][-1], xybins[1][0], xybins[1][-1])
 
-glm1_position_phase = nap.compute_2d_tuning_curves_continuous(pred_rate_1, data, 50)
+plt.subplot(223)
+plt.title("Raw Tuning")
+plt.imshow(gaussian_filter(tc_pos_theta[neuron].T, 1), aspect="auto", origin="lower", extent=extent)
+plt.xlabel("Position (cm)")
+plt.ylabel("Theta Phase (rad)")
 
-# %%
-# Let's the result and compare with the raw data.
+plt.subplot(224)
+plt.title("GLM predicted Tuning")
+plt.imshow(gaussian_filter(np.transpose(glm1_position_phase[0]), 1), aspect="auto", origin="lower", extent=extent)
+plt.xlabel("Position (cm)")
+plt.ylabel("Theta Phase (rad)")
 
+plt.tight_layout()
 
 # %%
 # ## Model selection
 #
 # While this model captures nicely the features-rate relationship, it is not necessarily the simplest model. Let's construct several models and evaluate their score to determine the best model.
+
+# !!! note
+#     To shorten this notebook, only a few combinations are tested. Feel free to expand this list.
 #
-# # !!! note
-# #     To shorten this notebook, only a few combinations are tested. Feel free to expand this list.
-# #
-# # <div class="notes">
-# # - Define a dictionary with different basis type and one with the corresponding features:
-# #   - "position"
-# #   - "position + speed"
-# #   - "position + phase"
-# #   - "position * phase + speed"
-# # </div>
 
-# basis_dict = {
-#     "position": position_basis,
-#     "position + speed": position_basis + speed_basis,
-#     "position + phase": position_basis + phase_basis,
-#     "position * phase + speed": position_basis * phase_basis + speed_basis,
-# }
+basis_dict = {
+    "position": position_basis,
+    "position + speed": position_basis + speed_basis,
+    "position + phase": position_basis + phase_basis,
+    "position * phase + speed": position_basis * phase_basis + speed_basis,
+}
 
-# features = {
-#     "position": (position,),
-#     "position + speed": (position, speed),
-#     "position + phase": (position, theta),
-#     "position * phase + speed": (position, theta, speed),
-# }
+features = {
+    "position": (position,),
+    "position + speed": (position, speed),
+    "position + phase": (position, theta),
+    "position * phase + speed": (position, theta, speed),
+}
 
-# # %%
-# # In a loop, we can (1) evaluate the basis, (2), fit the model, (3) compute the score and (4) predict the firing rate. For evaluating the score, we can define a train set of intervals and a test set of intervals.
-# # <div class="notes">
-# # - Split the time support: 50% trials for training and the other 50% for testing.
-# # </div>
+# %%
+# In a loop, we can (1) evaluate the basis, (2), fit the model, (3) compute the score and (4) predict the firing rate. For evaluating the score, we can define a train set of intervals and a test set of intervals.
 
+#
 # train_iset = position.time_support[::2] # Taking every other epoch
 # test_iset = position.time_support[1::2]
+#
+# %%
+# Let's train all the models.
 
-# # %%
-# # Let's train all the models.
-# # <div class="notes">
-# # - Loop over the models.
-# # - Fit & score each model.
-# # </div>
 
 # scores = {}
 # predicted_rates = {}
-
+#
 # for m in basis_dict:
 #     print("1. Evaluating basis : ", m)
 #     X = basis_dict[m](*features[m])
-
+#
 #     print("2. Fitting model : ", m)
 #     # glm = nmo.glm.GLM()
 #     glm.fit(
 #         X.restrict(train_iset),
 #         count.restrict(train_iset),
 #     )
-
+#
 #     print("3. Scoring model : ", m)
 #     scores[m] = glm.score(
 #         X.restrict(test_iset),
 #         count.restrict(test_iset),
 #         score_type="pseudo-r2-McFadden",
 #     )
-
+#
 #     print("4. Predicting rate")
 #     predicted_rates[m] = glm.predict(X.restrict(test_iset)) / bin_size
-
-
+#
+#
 # scores = pd.Series(scores)
 # scores = scores.sort_values()
 
-# # %%
-# # Let's compute scores for each models.
-# # <div class="notes">
-# # - Plot all the scores.
-# # </div>
-
+# %%
+# Let's compute scores for each models.
+# <div class="notes">
+# - Plot all the scores.
+# </div>
 # plt.figure(figsize=(5, 3))
 # plt.barh(np.arange(len(scores)), scores)
 # plt.yticks(np.arange(len(scores)), scores.index)
@@ -406,16 +398,16 @@ glm1_position_phase = nap.compute_2d_tuning_curves_continuous(pred_rate_1, data,
 # plt.tight_layout()
 
 
-# # %%
-# # Some models are doing better than others.
-# #
-# # !!! warning
-# #     A proper model comparison should be done by scoring models repetitively on various train and test set. Here we are only doing partial models comparison for the sake of conciseness.
-# #
-# # Alternatively, we can plot some tuning curves to compare each models visually.
-
+# %%
+# Some models are doing better than others.
+#
+# !!! warning
+#     A proper model comparison should be done by scoring models repetitively on various train and test set. Here we are only doing partial models comparison for the sake of conciseness.
+#
+# Alternatively, we can plot some tuning curves to compare each models visually.
+#
 # tuning_curves = {}
-
+#
 # for m in basis_dict:
 #     tuning_curves[m] = {
 #         "position": nap.compute_1d_tuning_curves_continuous(
@@ -425,12 +417,12 @@ glm1_position_phase = nap.compute_2d_tuning_curves_continuous(pred_rate_1, data,
 #             predicted_rates[m][:, np.newaxis], speed, 20, ep=test_iset
 #         ),
 #     }
-
+#
 # # recompute tuning from spikes restricting to the test-set
 # pf = nap.compute_1d_tuning_curves(spikes, position, 50, ep=test_iset)
 # tc_speed = nap.compute_1d_tuning_curves(spikes, speed, 20, ep=test_iset)
-
-
+#
+#
 # fig = plt.figure(figsize=(8, 4))
 # outer_grid = fig.add_gridspec(2, 2)
 # for i, m in enumerate(basis_dict):
@@ -440,18 +432,18 @@ glm1_position_phase = nap.compute_2d_tuning_curves_continuous(pred_rate_1, data,
 #         pf[neuron],
 #         tc_speed[neuron],
 #         m)
-
+#
 # plt.tight_layout()
 # plt.show()
 
-# # %%
-# # ## Conclusion
-# #
-# # Various combinations of features can lead to different results. Feel free to explore more. To go beyond this notebook, you can check the following references :
-# #
-# #   - [Hardcastle, Kiah, et al. "A multiplexed, heterogeneous, and adaptive code for navigation in medial entorhinal cortex." Neuron 94.2 (2017): 375-387](https://www.cell.com/neuron/pdf/S0896-6273(17)30237-4.pdf)
-# #
-# #   - [McClain, Kathryn, et al. "Position–theta-phase model of hippocampal place cell activity applied to quantification of running speed modulation of firing rate." Proceedings of the National Academy of Sciences 116.52 (2019): 27035-27042](https://www.pnas.org/doi/abs/10.1073/pnas.1912792116)
-# #
-# #   - [Peyrache, Adrien, Natalie Schieferstein, and Gyorgy Buzsáki. "Transformation of the head-direction signal into a spatial code." Nature communications 8.1 (2017): 1752.](https://www.nature.com/articles/s41467-017-01908-3)
-# #
+# %%
+# ## Conclusion
+#
+# Various combinations of features can lead to different results. Feel free to explore more. To go beyond this notebook, you can check the following references :
+#
+#   - [Hardcastle, Kiah, et al. "A multiplexed, heterogeneous, and adaptive code for navigation in medial entorhinal cortex." Neuron 94.2 (2017): 375-387](https://www.cell.com/neuron/pdf/S0896-6273(17)30237-4.pdf)
+#
+#   - [McClain, Kathryn, et al. "Position–theta-phase model of hippocampal place cell activity applied to quantification of running speed modulation of firing rate." Proceedings of the National Academy of Sciences 116.52 (2019): 27035-27042](https://www.pnas.org/doi/abs/10.1073/pnas.1912792116)
+#
+#   - [Peyrache, Adrien, Natalie Schieferstein, and Gyorgy Buzsáki. "Transformation of the head-direction signal into a spatial code." Nature communications 8.1 (2017): 1752.](https://www.nature.com/articles/s41467-017-01908-3)
+#
