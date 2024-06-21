@@ -22,6 +22,7 @@ After the workshop, we encourage you to return and check out the [Full tutorials
 
 Before the workshop, please try to complete the following steps. If you are unable to do so, we will be in the hotel, Palais Saschen Coburg room IV, from 4 to 6pm on Saturday, June 22 to help. Please come by!
 
+0. Make sure you have `git` installed. It is installed by default on most Mac and Linux machines, but you may need to install it if you are on Windows. [These instructions](https://github.com/git-guides/install-git) should help.
 1. Clone the github repo for this workshop:
    ```shell
    git clone https://github.com/flatironinstitute/ccn-software-fens-2024.git

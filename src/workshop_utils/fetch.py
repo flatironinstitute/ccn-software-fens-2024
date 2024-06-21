@@ -6,8 +6,8 @@ This is inspired by scipy's datasets module.
 REGISTRY = {
     "allen_478498617.nwb": "262393d7485a5b39cc80fb55011dcf21f86133f13d088e35439c2559fd4b49fa",
     "Mouse32-140822.nwb": "1a919a033305b8f58b5c3e217577256183b14ed5b436d9c70989dee6dafe0f35",
-    "A0634-210617.nwb": None,
     "Achilles_10252013.nwb": None,
+    "A0634-210617.nwb": "6d9252468daa111d2bf147b1c8ee362bfaba1f7160ecf48ba56c1fc0b9e776e7",
 }
 
 OSF_TEMPLATE = "https://osf.io/{}/download"
@@ -24,6 +24,8 @@ import pathlib
 from typing import List
 import pooch
 import click
+import requests
+from tqdm import tqdm
 DATA_DIR = pathlib.Path(__file__).parent.parent.parent / 'data'
 
 
@@ -77,6 +79,32 @@ def fetch_data(dataset_name: str) -> pathlib.Path:
     return fname.as_posix()
 
 
+def fetch_zfish():
+    # download zfish data for fpl demo
+    url = "https://github.com/fastplotlib/fastplotlib/raw/main/examples/notebooks/zfish_test.npy"
+
+    response = requests.get(url, stream=True)
+    total_size_in_bytes = int(response.headers.get("content-length", 0))
+    block_size = 1024  # 1 Kibibyte
+    progress_bar = tqdm(total=total_size_in_bytes, unit="iB", unit_scale=True)
+
+    data_file = pathlib.Path(
+        DATA_DIR, "zfish_data.npy"
+    )
+
+    if pathlib.Path.exists(data_file):
+        # already downloaded
+        return data_file
+
+    with open(data_file, "wb") as file:
+        for data in response.iter_content(block_size):
+            progress_bar.update(len(data))
+            file.write(data)
+    progress_bar.close()
+
+    return data_file
+
+
 @click.command()
 def main():
     """Download data.
@@ -91,6 +119,9 @@ def main():
     fetch_data("Mouse32-140822.nwb")
     fetch_data("A0634-210617.nwb")
     fetch_data("Achilles_10252013.nwb")
+
+    fetch_zfish()
+
 
 if __name__ == '__main__':
     main()

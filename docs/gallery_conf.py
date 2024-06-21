@@ -16,7 +16,7 @@ conf = {
     'min_reported_time': min_reported_time,
     # order your section in file name alphabetical order
     'within_subsection_order': FileNameSortKey,
-    # run every script that matches pattern
-    # (here we match every file that ends in .py)
-    'filename_pattern':  rf"{re.escape(os.sep)}(examples|setup){re.escape(os.sep)}.+\.py$"
+    # run every script that matches pattern (here we match every file that ends in .py
+    # except those that start with ##_fpl_neuro)
+    'filename_pattern':  rf"{re.escape(os.sep)}(examples|setup){re.escape(os.sep)}0._(?!fpl_neuro).+\.py$",
 }
