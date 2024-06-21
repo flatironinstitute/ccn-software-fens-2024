@@ -3,6 +3,7 @@
 """
 # Fit head-direction population
 
+
 ## Learning objectives {.keep-text}
 
 - Learn how to add history-related predictors to NeMoS GLM
@@ -244,7 +245,9 @@ workshop_utils.plotting.plot_features(input_feature, count.rate, suptitle)
 # %%
 # As you may see, the time axis is backward, this happens because convolution flips the time axis.
 # This is equivalent, as we can interpret the result as how much a spike will affect the future rate.
+
 # The resulting feature dimension is 80, because our bin size was 0.01 sec and the window size is 0.8 sec.
+
 # We can learn these weights by maximum likelihood by fitting a GLM.
 
 # %%
@@ -296,6 +299,7 @@ model.fit(
 workshop_utils.plotting.plot_and_compare_weights(
     [model.coef_], ["GLM raw history 1st Half"], count.rate)
 
+
 # %%
 # The response in the previous figure seems noise added to a decay, therefore the response
 # can be described with fewer degrees of freedom. In other words, it looks like we
@@ -303,15 +307,18 @@ workshop_utils.plotting.plot_and_compare_weights(
 # If we are correct, what would happen if we re-fit the weights on the other half of the data?
 # #### Inspecting the results
 # <div class="notes">
+
 # - Fit on the other half.
 # </div>
 # Fit on the test set.
 
 model_second_half = nmo.glm.GLM()
+
 model_second_half.fit(
     input_feature.restrict(second_half),
     neuron_count.restrict(second_half)
 )
+
 
 # %%
 # Compare the results
@@ -410,6 +417,7 @@ workshop_utils.plotting.plot_convolved_counts(
 
 
 model_basis = nmo.glm.GLM()
+
 # use restrict on interval set training
 model_basis.fit(
     conv_spk.restrict(first_half),
@@ -441,6 +449,7 @@ print(self_connection.shape)
 #
 # <div class="notes">
 # - Fit the other half of the data.
+
 # </div>
 model_basis_second_half = nmo.glm.GLM(
     regularizer=nmo.regularizer.UnRegularized("LBFGS")
@@ -451,6 +460,7 @@ model_basis_second_half.fit(
 
 # compute responses for the 2nd half fit
 self_connection_second_half = np.matmul(basis_kernels, model_basis_second_half.coef_)
+
 
 # %%
 # We can now compare this model that based on the raw count history.
@@ -464,7 +474,6 @@ workshop_utils.plotting.plot_and_compare_weights(
     ["GLM raw history 1st Half", "GLM raw history 2nd half", "GLM basis 1st half", "GLM basis 2nd half"],
     count.rate
 )
-
 
 # %%
 # Let's extract and plot the rates
@@ -620,7 +629,6 @@ print(responses.shape)
 # {.keep-code}
 workshop_utils.plotting.plot_coupling(responses, tuning)
 
-
 # %%
 # ## K-fold Cross-Validation {.keep-paragraph}
 #
@@ -707,5 +715,3 @@ print(f"Best regularization strength: "
 # - What happens if you use 5 folds?
 # - What happen if you cross-validate each neuron individually?
 #   Do you select the same hyperparameter for every neuron or not?
-
-

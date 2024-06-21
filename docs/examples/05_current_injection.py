@@ -33,6 +33,7 @@ using [pynapple](https://pynapple-org.github.io/pynapple/). This will largely be
 review of what we went through yesterday. After we've explored the data some, we'll
 introduce the Generalized Linear Model and how to fit it with NeMoS.
 
+
 <div class="notes">
 Data for this notebook is a patch clamp experiment with a mouse V1 neuron, from the [Allen Brain Atlas](https://celltypes.brain-map.org/experiment/electrophysiology/478498617)
 
@@ -125,6 +126,7 @@ print(data)
 #
 # Now let's go through the relevant variables in some more detail:
 # <div class="notes">"
+
 # ![Annotated view of the data we will analyze.](../../assets/allen_data_annotated.gif)
 #
 # - `stimulus`: Tsd containing injected current, in Amperes, sampled at 20k Hz.
