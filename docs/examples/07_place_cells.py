@@ -371,12 +371,10 @@ glm2_position_phase, xybins = nap.compute_2d_tuning_curves_continuous(
 )
 
 glm2_position = nap.compute_1d_tuning_curves_continuous(pred_rate_2, position, 50)
-glm2_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_2, speed, 30, minmax=(0, 100))
-
+glm2_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_2, speed, 50, minmax=(0, 100))
 
 # %%
-# **Question:** if you re-plot the tuning function for this model, does it look like it is doing a better job
-# on capturing the speed tuning?
+# **Question:** if you re-plot the tuning function for this model, does it look like the fit significantly improve?
 
 plt.figure()
 
@@ -401,7 +399,7 @@ plt.tight_layout()
 # %%
 # How do we make this quantitative?
 # **Question:** can you use the `score` method of `GLM` to check which model has a better score on the test epochs?
-# Use the `score_type='pseudo-r2-McFadden'` argument to get a score normalized between 0 and 1, the larger the better.
+# Use the `score_type='pseudo-r2-McFadden'` argument to get a score normalized between 0 and 1, the larger, the better.
 
 print(f"position x phase score: {glm1.score(X1.restrict(ep_testing), count.restrict(ep_testing), score_type='pseudo-r2-McFadden')}")
 print(f"position x phase + speed score: {glm2.score(X2.restrict(ep_testing), count.restrict(ep_testing), score_type='pseudo-r2-McFadden')}")
@@ -409,7 +407,11 @@ print(f"position x phase + speed score: {glm2.score(X2.restrict(ep_testing), cou
 # %%
 # ## Conclusion
 #
-# Various combinations of features can lead to different results. Feel free to explore more. To go beyond this notebook, you can check the following references :
+# Including speed as an explicit regressor only marginally affects the model predictive power. Our analysis
+# seems to indicate that the neuron is encoding primarily for position. The apparent speed modulation
+# may emerge due to correlations of between speed and position.
+#
+# Feel free to explore more. To go beyond this notebook, you can check the following references:
 #
 #   - [Hardcastle, Kiah, et al. "A multiplexed, heterogeneous, and adaptive code for navigation in medial entorhinal cortex." Neuron 94.2 (2017): 375-387](https://www.cell.com/neuron/pdf/S0896-6273(17)30237-4.pdf)
 #
