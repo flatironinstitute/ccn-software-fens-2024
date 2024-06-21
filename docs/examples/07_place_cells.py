@@ -259,9 +259,15 @@ glm1 = nmo.glm.GLM(
     regularizer=nmo.regularizer.UnRegularized("LBFGS", solver_kwargs=dict(tol=10**-12))
 )
 
+# %%
+# For let's reserve half of the epochs for training and half is going to be use to compare model (testing).
+
+ep_training = count.time_support[::2]
+ep_testing = count.time_support[1::2]
+
 # **Question:** ... and fit the model?
 
-glm1.fit(X1, count)
+glm1.fit(X1.restrict(ep_training), count.restrict(ep_training))
 
 # %%
 # ## Prediction {.strip-code,.keep-text}
@@ -270,7 +276,7 @@ glm1.fit(X1, count)
 # 
 # **Question:** Using the `predict` function of NeMoS, can you compute the firing in spikes per second?
 
-pred_rate_1 = glm1.predict(X1)/bin_size
+pred_rate_1 = glm1.predict(X1.restrict(ep_training))/bin_size
 
 # %%
 # We can compute a tuning curves from the predicted rate.
@@ -324,128 +330,80 @@ plt.ylabel("rate (Hz)")
 plt.plot(pf[neuron])
 plt.plot(glm1_position)
 
-plt.xlabel("cm/sec")
+plt.xlabel("cm")
 
 plt.subplot(222)
 plt.title("speed")
 plt.plot(tc_speed[neuron])
 plt.plot(glm1_speed)
+plt.xlabel("cm/sec")
+
+# %%
+# **Question:** Even if we did not include explicitly speed as a regression we can capture some tuning. Why is that?
+#
+# Let's include the speed as a predictor to see if we get a qualitatively better match.
+#
+# **Question:** Can you define a new basis that captures the effect of speed? *(tip: add an extra basis)*
+
+basis = position_phase_basis + speed_basis
+
+# %%
+# Let's the basis to create a new design matrix and fit a GLM on the training epoch.
+
+X2 = basis(position, theta, speed)
+
+glm2 = nmo.glm.GLM(
+    regularizer=nmo.regularizer.UnRegularized("LBFGS", solver_kwargs=dict(tol=10**-12))
+)
+
+# fit
+glm2.fit(X2.restrict(ep_training), count.restrict(ep_training))
+
+# %%
+# Let's compute again the tuning function from this model using pynapple.
+
+# predict rate
+pred_rate_2 = glm2.predict(X2.restrict(ep_training))/bin_size
+
+# compute 1d and 2d tuning
+glm2_position_phase, xybins = nap.compute_2d_tuning_curves_continuous(
+    pred_rate_2, data, 30, ep=within_ep
+)
+
+glm2_position = nap.compute_1d_tuning_curves_continuous(pred_rate_2, position, 50)
+glm2_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_2, speed, 30, minmax=(0, 100))
+
+
+# %%
+# **Question:** if you re-plot the tuning function for this model, does it look like it is doing a better job
+# on capturing the speed tuning?
+
+plt.figure()
+
+plt.subplot(221)
+plt.title("position")
+plt.ylabel("rate (Hz)")
+plt.plot(pf[neuron])
+plt.plot(glm1_position, label="position x phase")
+plt.plot(glm2_position, label="position x phase + speed")
+plt.legend()
 plt.xlabel("cm")
 
-
-
-
-# %%
-# ## Model selection
-#
-# While this model captures nicely the features-rate relationship, it is not necessarily the simplest model. Let's construct several models and evaluate their score to determine the best model.
-
-# !!! note
-#     To shorten this notebook, only a few combinations are tested. Feel free to expand this list.
-#
-
-basis_dict = {
-    "position": position_basis,
-    "position + speed": position_basis + speed_basis,
-    "position + phase": position_basis + phase_basis,
-    "position * phase + speed": position_basis * phase_basis + speed_basis,
-}
-
-features = {
-    "position": (position,),
-    "position + speed": (position, speed),
-    "position + phase": (position, theta),
-    "position * phase + speed": (position, theta, speed),
-}
+plt.subplot(222)
+plt.title("speed")
+plt.plot(tc_speed[neuron])
+plt.plot(glm1_speed, label="position x phase")
+plt.plot(glm2_speed, label="position x phase + speed")
+plt.xlabel("cm/sec")
+plt.legend()
+plt.tight_layout()
 
 # %%
-# In a loop, we can (1) evaluate the basis, (2), fit the model, (3) compute the score and (4) predict the firing rate. For evaluating the score, we can define a train set of intervals and a test set of intervals.
+# How do we make this quantitative?
+# **Question:** can you use the `score` method of `GLM` to check which model has a better likelihood on the test epochs?
 
-#
-# train_iset = position.time_support[::2] # Taking every other epoch
-# test_iset = position.time_support[1::2]
-#
-# %%
-# Let's train all the models.
-
-
-# scores = {}
-# predicted_rates = {}
-#
-# for m in basis_dict:
-#     print("1. Evaluating basis : ", m)
-#     X = basis_dict[m](*features[m])
-#
-#     print("2. Fitting model : ", m)
-#     # glm = nmo.glm.GLM()
-#     glm.fit(
-#         X.restrict(train_iset),
-#         count.restrict(train_iset),
-#     )
-#
-#     print("3. Scoring model : ", m)
-#     scores[m] = glm.score(
-#         X.restrict(test_iset),
-#         count.restrict(test_iset),
-#         score_type="pseudo-r2-McFadden",
-#     )
-#
-#     print("4. Predicting rate")
-#     predicted_rates[m] = glm.predict(X.restrict(test_iset)) / bin_size
-#
-#
-# scores = pd.Series(scores)
-# scores = scores.sort_values()
-
-# %%
-# Let's compute scores for each models.
-# <div class="notes">
-# - Plot all the scores.
-# </div>
-# plt.figure(figsize=(5, 3))
-# plt.barh(np.arange(len(scores)), scores)
-# plt.yticks(np.arange(len(scores)), scores.index)
-# plt.xlabel("Pseudo r2")
-# plt.tight_layout()
-
-
-# %%
-# Some models are doing better than others.
-#
-# !!! warning
-#     A proper model comparison should be done by scoring models repetitively on various train and test set. Here we are only doing partial models comparison for the sake of conciseness.
-#
-# Alternatively, we can plot some tuning curves to compare each models visually.
-#
-# tuning_curves = {}
-#
-# for m in basis_dict:
-#     tuning_curves[m] = {
-#         "position": nap.compute_1d_tuning_curves_continuous(
-#             predicted_rates[m][:, np.newaxis], position, 50, ep=test_iset
-#         ),
-#         "speed": nap.compute_1d_tuning_curves_continuous(
-#             predicted_rates[m][:, np.newaxis], speed, 20, ep=test_iset
-#         ),
-#     }
-#
-# # recompute tuning from spikes restricting to the test-set
-# pf = nap.compute_1d_tuning_curves(spikes, position, 50, ep=test_iset)
-# tc_speed = nap.compute_1d_tuning_curves(spikes, speed, 20, ep=test_iset)
-#
-#
-# fig = plt.figure(figsize=(8, 4))
-# outer_grid = fig.add_gridspec(2, 2)
-# for i, m in enumerate(basis_dict):
-#     plotting.plot_position_speed_tuning(
-#         outer_grid[i // 2, i % 2],
-#         tuning_curves[m],
-#         pf[neuron],
-#         tc_speed[neuron],
-#         m)
-#
-# plt.tight_layout()
-# plt.show()
+print(f"position x phase score: {glm1.score(X1.restrict(ep_testing), count.restrict(ep_testing))}")
+print(f"position x phase + speed score: {glm2.score(X2.restrict(ep_testing), count.restrict(ep_testing))}")
 
 # %%
 # ## Conclusion

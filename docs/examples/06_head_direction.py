@@ -620,6 +620,10 @@ print(responses.shape)
 # {.keep-code}
 workshop_utils.plotting.plot_coupling(responses, tuning)
 
+# %%
+# !!! note "Advanced Topic: Model Selection and Cross-Validation"
+#     The remainder of this notebook focuses on advanced topics such as model selection and K-fold cross-validation.
+#     The code is provided, if you are interested, try it out!
 
 # %%
 # ## K-fold Cross-Validation {.keep-paragraph}
