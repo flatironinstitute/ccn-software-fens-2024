@@ -418,7 +418,7 @@ print(f"position x phase + speed score: {glm2.score(X2.restrict(ep_testing), cou
 #
 # Including speed as an explicit regressor only marginally affects the model predictive power. Our analysis
 # seems to indicate that the neuron is encoding primarily for position. The apparent speed modulation
-# may emerge due to correlations of between speed and position.
+# may emerge due to correlations between speed and position.
 #
 # Feel free to explore more. To go beyond this notebook, you can check the following references:
 #
