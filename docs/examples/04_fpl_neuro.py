@@ -26,6 +26,7 @@ from scipy.stats import zscore
 from scipy.ndimage import gaussian_filter1d
 from sidecar import Sidecar
 import workshop_utils
+from workshop_utils import TimeStore
 from IPython.display import display
 
 # %%
@@ -54,7 +55,7 @@ print(data)
 # ([`pynaviz`](https://github.com/pynapple-org/pynaviz)) that makes these visualizations and
 # synchronizations even easier :D
 
-time_store = workshop_utils.TimeStore()
+time_store = TimeStore()
 
 # %%
 # Behavior data and shape 🐭
