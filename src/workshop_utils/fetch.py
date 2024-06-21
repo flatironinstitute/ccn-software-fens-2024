@@ -6,7 +6,7 @@ This is inspired by scipy's datasets module.
 REGISTRY = {
     "allen_478498617.nwb": "262393d7485a5b39cc80fb55011dcf21f86133f13d088e35439c2559fd4b49fa",
     "Mouse32-140822.nwb": "1a919a033305b8f58b5c3e217577256183b14ed5b436d9c70989dee6dafe0f35",
-    "A0634-210617.nwb": None
+    "A0634-210617.nwb": "6d9252468daa111d2bf147b1c8ee362bfaba1f7160ecf48ba56c1fc0b9e776e7",
 }
 
 OSF_TEMPLATE = "https://osf.io/{}/download"
