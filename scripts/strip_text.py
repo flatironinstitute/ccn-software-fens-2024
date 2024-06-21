@@ -43,6 +43,7 @@ def convert(path: str, follow_strip_classes=True):
     for block_type, block_txt, line_no in source_blocks:
         if block_type == 'text':
             block = []
+            in_paragraph = False
             for line in block_txt.splitlines():
                 header = MD_TITLE_MARKER.search(line)
                 if header:
@@ -60,6 +61,13 @@ def convert(path: str, follow_strip_classes=True):
                 else:
                     if any(['.keep-text' in h[1] for h in most_recent_header_chain]):
                         block.append(line)
+                    elif any(['.keep-paragraph' in h[1] for h in most_recent_header_chain]):
+                        # copy paragraph
+                        if not in_paragraph:
+                            in_paragraph = line.strip().startswith("<p ") and line.strip().endswith(">")
+                        if in_paragraph:
+                            block.append(line)
+                            in_paragraph = not line.strip().endswith("</p>")
                     if DIV_END.search(line):
                         in_note = False
                         block.append('')
@@ -94,11 +102,11 @@ def main(input_dir: str, output_dir: str, ignore_classes_dir: str):
     for f in glob.glob(os.path.join(input_dir, '*py')):
         blocks = convert(f, True)
         out_fn = os.path.split(f)[-1].replace('.py', '_users.py')
-        with open(os.path.join(output_dir, out_fn), 'w') as out_f:
+        with open(os.path.join(output_dir, out_fn), 'w', encoding='utf-8') as out_f:
             out_f.write('\n'.join(blocks))
         blocks = convert(f, False)
         out_fn = os.path.split(f)[-1].replace('.py', '_code.py')
-        with open(os.path.join(ignore_classes_dir, out_fn), 'w') as out_f:
+        with open(os.path.join(ignore_classes_dir, out_fn), 'w', encoding='utf-8') as out_f:
             out_f.write('\n'.join(blocks))
 
 

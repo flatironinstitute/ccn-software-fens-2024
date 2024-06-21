@@ -23,11 +23,13 @@ plugins:
           conf_script: docs/gallery_conf.py
           # path to the directory containing our examples/tutorials
           examples_dirs:
+            - docs/setup
             - docs/examples
             - docs/just_code
             - docs/for_users
           # path to the directory where mkdocs will save the generated output
           gallery_dirs:
+            - docs/generated/setup
             - docs/generated/gallery
             - docs/generated/just_code
             - docs/generated/for_users
@@ -56,6 +58,7 @@ extra_css:
 
 nav:
     - Home: index.md
+    - Setup: generated/setup
     - Full tutorials: generated/gallery
     - For users: generated/for_users
     - For presenters: generated/just_code

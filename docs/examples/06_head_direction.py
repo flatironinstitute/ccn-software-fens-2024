@@ -3,11 +3,12 @@
 """
 # Fit head-direction population
 
-## Learning objectives
+
+## Learning objectives {.keep-text}
 
 - Learn how to add history-related predictors to NeMoS GLM
-- Learn about NeMoS `Basis` objects
-- Learn how to use `Basis` objects with convolution
+- Learn how to reduce over-fitting with `Basis`
+- Learn how to cross-validate with NeMoS + scikit-learn
 
 """
 
@@ -18,6 +19,7 @@ import warnings
 import workshop_utils
 
 import nemos as nmo
+from sklearn.model_selection import GridSearchCV
 
 warnings.filterwarnings("ignore")
 
@@ -243,15 +245,16 @@ workshop_utils.plotting.plot_features(input_feature, count.rate, suptitle)
 # %%
 # As you may see, the time axis is backward, this happens because convolution flips the time axis.
 # This is equivalent, as we can interpret the result as how much a spike will affect the future rate.
-# In the previous tutorial our feature was 1-dimensional (just the current), now
-# instead the feature dimension is 80, because our bin size was 0.01 sec and the window size is 0.8 sec.
+
+# The resulting feature dimension is 80, because our bin size was 0.01 sec and the window size is 0.8 sec.
+
 # We can learn these weights by maximum likelihood by fitting a GLM.
 
 # %%
 # #### Fitting the Model
 #
-# When working a real dataset, it is good practice to train your models on a chunk of the data and
-# use the other chunk to assess the model performance. This process is known as "cross-validation".
+# When working with a real dataset, it is good practice to train your models on a chunk of the data and
+# use the other chunk to assess the model performance. This process is known as **"cross-validation"**.
 # There is no unique strategy on how to cross-validate your model; What works best
 # depends on the characteristic of your data (time series or independent samples,
 # presence or absence of trials...), and that of your model. Here, for simplicity use the first
@@ -263,6 +266,7 @@ workshop_utils.plotting.plot_features(input_feature, count.rate, suptitle)
 # - Split your epochs in two for validation purposes.
 # </div>
 
+# {.keep-code}
 # construct the train and test epochs
 duration = neuron_count.time_support.tot_length()
 start = neuron_count.time_support["start"]
@@ -278,7 +282,7 @@ second_half = nap.IntervalSet(start + duration / 2, end)
 
 
 # define the GLM object
-model = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
+model = nmo.glm.GLM()
 
 # Fit over the training epochs
 model.fit(
@@ -291,13 +295,10 @@ model.fit(
 # - Plot the weights.
 # </div>
 
-plt.figure()
-plt.title("Spike History Weights")
-plt.plot(np.arange(window_size) / count.rate, model.coef_, lw=2, label="GLM raw history 1st Half")
-plt.axhline(0, color="k", lw=0.5)
-plt.xlabel("Time From Spike (sec)")
-plt.ylabel("Kernel")
-plt.legend()
+# {.keep-code}
+workshop_utils.plotting.plot_and_compare_weights(
+    [model.coef_], ["GLM raw history 1st Half"], count.rate)
+
 
 # %%
 # The response in the previous figure seems noise added to a decay, therefore the response
@@ -306,26 +307,30 @@ plt.legend()
 # If we are correct, what would happen if we re-fit the weights on the other half of the data?
 # #### Inspecting the results
 # <div class="notes">
-# - Fit on the other half and compare results.
+
+# - Fit on the other half.
 # </div>
 # Fit on the test set.
 
-model_second_half = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
+model_second_half = nmo.glm.GLM()
+
 model_second_half.fit(
     input_feature.restrict(second_half),
     neuron_count.restrict(second_half)
 )
 
-plt.figure()
-plt.title("Spike History Weights")
-plt.plot(np.arange(window_size) / count.rate, np.squeeze(model.coef_),
-         label="GLM raw history 1st Half", lw=2)
-plt.plot(np.arange(window_size) / count.rate,  np.squeeze(model_second_half.coef_),
-         color="orange", label="GLM raw history 2nd Half", lw=2)
-plt.axhline(0, color="k", lw=0.5)
-plt.xlabel("Time From Spike (sec)")
-plt.ylabel("Kernel")
-plt.legend()
+
+# %%
+# Compare the results
+# <div class="notes">
+# - Compare results.
+# </div>
+
+# {.keep-code}
+workshop_utils.plotting.plot_and_compare_weights(
+    [model.coef_, model_second_half.coef_],
+    ["GLM raw history 1st Half", "GLM raw history 2nd Half"],
+    count.rate)
 
 # %%
 # What can we conclude?
@@ -411,9 +416,8 @@ workshop_utils.plotting.plot_convolved_counts(
 # </div>
 
 
-model_basis = nmo.glm.GLM(
-    regularizer=nmo.regularizer.UnRegularized("LBFGS")
-)
+model_basis = nmo.glm.GLM()
+
 # use restrict on interval set training
 model_basis.fit(
     conv_spk.restrict(first_half),
@@ -439,45 +443,37 @@ self_connection = np.matmul(basis_kernels, model_basis.coef_)
 print(self_connection.shape)
 
 # %%
-# We can now compare this model that based on the raw count history.
-#
-# <div class="notes">
-# - Compare with the raw count history model.
-# </div>
-plt.figure()
-plt.title("Spike History Weights")
-plt.plot(time, model.coef_, alpha=0.3, label="GLM raw history")
-plt.plot(time, self_connection, "--k", label="GLM basis", lw=2)
-plt.axhline(0, color="k", lw=0.5)
-plt.xlabel("Time from spike (sec)")
-plt.ylabel("Weight")
-plt.legend()
-
-# %%
 # Let's check if our new estimate does a better job in terms of over-fitting. We can do that
 # by visual comparison, as we did previously. Let's fit the second half of the dataset.
 #
 #
 # <div class="notes">
 # - Fit the other half of the data.
-# - Plot and compare the results.
+
 # </div>
-model_basis_second_half = nmo.glm.GLM(regularizer=nmo.regularizer.UnRegularized("LBFGS"))
-model_basis_second_half.fit(conv_spk.restrict(second_half), neuron_count.restrict(second_half))
+model_basis_second_half = nmo.glm.GLM(
+    regularizer=nmo.regularizer.UnRegularized("LBFGS")
+)
+model_basis_second_half.fit(
+    conv_spk.restrict(second_half), neuron_count.restrict(second_half)
+)
 
 # compute responses for the 2nd half fit
 self_connection_second_half = np.matmul(basis_kernels, model_basis_second_half.coef_)
 
-plt.figure()
-plt.title("Spike History Weights")
-plt.plot(time, model.coef_, "k", alpha=0.3, label="GLM raw history 1st half")
-plt.plot(time, model_second_half.coef_, alpha=0.3, color="orange", label="GLM raw history 2nd half")
-plt.plot(time, self_connection, "--k", lw=2, label="GLM basis 1st half")
-plt.plot(time, self_connection_second_half, color="orange", lw=2, ls="--", label="GLM basis 2nd half")
-plt.axhline(0, color="k", lw=0.5)
-plt.xlabel("Time from spike (sec)")
-plt.ylabel("Weight")
-plt.legend()
+
+# %%
+# We can now compare this model that based on the raw count history.
+#
+# <div class="notes">
+# - Plot and compare the results.
+# </div>
+
+workshop_utils.plotting.plot_and_compare_weights(
+    [model.coef_, model_second_half.coef_, self_connection, self_connection_second_half],
+    ["GLM raw history 1st Half", "GLM raw history 2nd half", "GLM basis 1st half", "GLM basis 2nd half"],
+    count.rate
+)
 
 # %%
 # Let's extract and plot the rates
@@ -528,7 +524,11 @@ print(f"Convolved count shape: {convolved_count.shape}")
 # %%
 # #### Fitting the Model
 # This is an all-to-all neurons model.
-# We are using the class `PopulationGLM` to fit the whole population at once.
+# We can use the class `PopulationGLM` to fit the whole population at once.
+#
+# How many weights are we learning in this case? We have 8 x 19 = 152 features for each of our 19 neurons,
+# for a total of 2888 weights, so the parameter space is still quite large.
+# A safe approach to further mitigate over-fitting is to use a Ridge (L2) penalization.
 #
 # !!! note
 #     Once we condition on past activity, log-likelihood of the population is the sum of the log-likelihood
@@ -538,12 +538,14 @@ print(f"Convolved count shape: {convolved_count.shape}")
 #
 # <div class="notes">
 # - Fit a `PopulationGLM`
+# - Use Ridge regularization with a `regularizer_strength=0.1`
 # - Print the shape of the estimated coefficients.
 # </div>
 
+
 model = nmo.glm.PopulationGLM(
-    regularizer=nmo.regularizer.Ridge(regularizer_strength=0.1, solver_name="LBFGS"),
-    ).fit(convolved_count, count)
+    regularizer=nmo.regularizer.Ridge("LBFGS", regularizer_strength=0.1)
+).fit(convolved_count, count)
 
 print(f"Model coefficients shape: {model.coef_.shape}")
 
@@ -626,3 +628,90 @@ print(responses.shape)
 
 # {.keep-code}
 workshop_utils.plotting.plot_coupling(responses, tuning)
+
+# %%
+# ## K-fold Cross-Validation {.keep-paragraph}
+#
+# <p align="center">
+#   <img src="../../../assets/grid_search_cross_validation.png" alt="Grid Search Cross Validation" style="max-width: 80%; height: auto;">
+#   <br>
+#   <em>K-fold cross-validation (from <a href="https://scikit-learn.org/stable/modules/cross_validation.html" target="_blank">scikit-learn docs</a>)</em>
+# </p>
+#
+#
+# Here, we selected a reasonable regularization strength for the Ridge-GLM for you.
+# In general, figuring out a "good" value for this hyperparameter is crucial for model fit quality.
+# Too low, and you may over-fit (high variance), too high, and you may
+# under-fit (high bias), i.e. learning very small weights that do not capture neural activity.
+#
+# What you aim for is to strike a balance between the variance and the bias. Quantitatively, you can assess
+# how well your model is performing by evaluating the log-likelihood score over some
+# left-out data.
+#
+# A common approach is the "K-fold" cross validation, see figure above.
+# In a K-fold cross-validation, you'll split the data in K chunks of equal size. You then fit the
+# model on K-1 chunks, and score it on the left-out one.
+# You'll repeat the procedure K-times leaving out a different chunk at each iteration.
+# At the end of the procedure, you can average the K-scores, to get a robust estimate of the model
+# performance.
+# To select a hyperparameter, you can run a K-fold over a grid of hyperparameters,
+# and pick the one with the best average score.
+#
+# ## K-fold with NeMoS and scikit-learn {.strip-code}
+# Let's see how to implement the K-Fold with NeMoS and scikit-learn.
+#
+# <div class="notes">
+# - Instantiate the PopulationGLM
+# - Define a grid of regularization strengths.
+# - Instantiate and fit the GridSearchCV with 2 folds.
+# </div>
+
+# {.keep-code}
+# define the model
+model = nmo.glm.PopulationGLM(
+    regularizer=nmo.regularizer.Ridge("LBFGS")
+)
+
+# define a grid of parameters for the search
+param_grid = dict(regularizer__regularizer_strength=np.logspace(-3, 0, 4))
+print(param_grid)
+
+# define a GridSearch cross-validation from scikit-learn
+# with 2-folds
+k_fold = GridSearchCV(model, param_grid=param_grid, cv=2)
+
+# %%
+# !!! note
+#
+#     The keys in `param_grid` use a special syntax of the form
+#     `<parameter>__<subparameter>`. This tells scikit-learn to access and set the
+#     values of the `model.parameter.subparameter` attribute.
+#
+#     See the [scikit-learn
+#     docs](https://scikit-learn.org/stable/modules/grid_search.html#composite-estimators-and-parameter-spaces)
+#     for more details.
+#
+# <div class="notes">
+# - Run cross-validation!
+# </div>
+
+# {.keep-code}
+# fit the cross-validated model
+k_fold.fit(convolved_count, count)
+
+# %%
+# We can inspect the K-fold result and print best parameters.
+# <div class="notes">
+# - Print the best parameters.
+# </div>
+
+# {.keep-code}
+print(f"Best regularization strength: "
+      f"{k_fold.best_params_['regularizer__regularizer_strength']}")
+
+# %%
+# ## Exercises {.keep-text}
+# - Plot the weights and rate predictions.
+# - What happens if you use 5 folds?
+# - What happen if you cross-validate each neuron individually?
+#   Do you select the same hyperparameter for every neuron or not?

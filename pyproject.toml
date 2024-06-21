@@ -37,7 +37,7 @@ dependencies = [
     'h5py',
     'matplotlib',
     'dandi',
-    'nemos @ git+https://github.com/flatironinstitute/nemos.git',
+    'nemos',
     'pytest',
     'click',
     'ipython',

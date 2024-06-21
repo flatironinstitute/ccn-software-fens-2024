@@ -6,4 +6,5 @@ conda clean --all -y
 # because of symlinks and being in the container, this is where the Binder
 # instance thinks the data should go.
 FENS_DATA_DIR=/home/jovyan/data python ccn-software-fens-2024/scripts/setup.py
-cp -R ccn-software-fens-2024/notebooks ./notebooks
+mkdir -p notebooks
+cp ccn-software-fens-2024/notebooks/0*ipynb ./notebooks/

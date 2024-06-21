@@ -22,6 +22,7 @@ After the workshop, we encourage you to return and check out the [Full tutorials
 
 Before the workshop, please try to complete the following steps. If you are unable to do so, we will be in the hotel, Palais Saschen Coburg room IV, from 4 to 6pm on Saturday, June 22 to help. Please come by!
 
+0. Make sure you have `git` installed. It is installed by default on most Mac and Linux machines, but you may need to install it if you are on Windows. [These instructions](https://github.com/git-guides/install-git) should help.
 1. Clone the github repo for this workshop:
    ```shell
    git clone https://github.com/flatironinstitute/ccn-software-fens-2024.git
@@ -47,10 +48,13 @@ Before the workshop, please try to complete the following steps. If you are unab
     ```shell
     python scripts/check_setup.py
     ```
+7. Confirm the installation of `fastplotlib` and associated libraries worked by running `jupyter lab`, opening up `notebooks/test_fastplotlib_installation.ipynb` and ensuring that you can run the notebook to completion without any errors.
 
 If `check_setup.py` tells you setup was successful, then you're good to go. Otherwise, please come to the installation help session in the hotel, Palais Saschen Coburg room IV, on Saturday, so everyone is ready to get started Sunday morning.
 
 After doing the above, the `data/` and `notebooks/` directories within your local copy of the `ccn-software-fens-2024` repository will contain the NWB files and jupyter notebooks for the workshop.
+
+We will work through the notebooks in the order they're listed on this website. On your machine, you should see that all notebooks start with a zero-padded number (e.g., `01`, `02`); this is the order we'll work through them.
 
 ## Converting your data to NWB
 

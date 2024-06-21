@@ -25,7 +25,6 @@
 - Sliders, support window functions, etc.
 
 """
-import os.path
 
 # %%
 # This notebook will go through some basic components of the `fastplotlib` API including how to instantiate a plot,
@@ -39,7 +38,6 @@ import fastplotlib as fpl
 import numpy as np
 import imageio.v3 as iio
 import workshop_utils
-
 
 # %%
 # ## Simple Image
@@ -107,6 +105,7 @@ image_graphic.reset_vmin_vmax()
 #
 # Note: At first you should see a solid image. You will need to reset the vmin/vmax of the image.
 
+
 # create new random data of the same shape as the original image
 new_data = np.random.rand(*image_graphic.data.value.shape)
 
@@ -138,6 +137,7 @@ fig.canvas.max_buffered_frames = 1
 data = np.random.rand(512, 512)
 
 # plot the data
+
 fig_v[0, 0].add_image(data=data, name="random-image")
 
 
@@ -150,6 +150,7 @@ def update_data(plot_instance):
 
 
 # add this as an animation function
+
 fig_v.add_animations(update_data)
 
 fig_v.show(sidecar=True)
@@ -190,13 +191,11 @@ practice_fig[0, 0].add_image(data=data, name="random-image", cmap="viridis")
 practice_fig[0, 0]["random-image"].data[:256, :256] = 1  # top-left
 practice_fig[0, 0]["random-image"].data[256:, 256:] = 1  # bottom-right
 
-
 # define an animation function to toggle the data
 def update_data(plot_instance):
     # set the top-right and bottom-left quadrants with new random data
     plot_instance[0, 0]["random-image"].data[:256, 256:] = np.random.rand(256, 256)  # bottom-left
     plot_instance[0, 0]["random-image"].data[256:, :256] = np.random.rand(256, 256)  # top-right
-
 
 # add the animation function
 practice_fig.add_animations(update_data)
@@ -337,12 +336,11 @@ cosine_graphic.colors[60] = "w"
 # indexing to assign colormaps to entire lines or segments
 sinc_graphic.cmap[10:50] = "gray"
 
-# %%
-
 # setting the colormap based on particular values
 sine_graphic.cmap = "plasma"
 # set the cmap transform
 sine_graphic.cmap.transform = [4] * 25 + [1] * 25 + [3] * 25 + [8] * 25
+
 
 # %%
 #
@@ -412,7 +410,6 @@ sine_graphic.colors = "w"
 def callback_func(ev):
     print(ev.info)
 
-
 # %%
 
 # when the cosine graphic colors change, will also update the sine_graphic colors
@@ -420,6 +417,7 @@ def change_colors(ev):
     sine_graphic.colors[ev.info["key"]] = "magenta"
 
 
+    
 cosine_graphic.add_event_handler(change_colors, "colors")
 
 # %%
@@ -427,7 +425,6 @@ cosine_graphic.colors[:10] = "g"
 
 # %%
 fig_lines.close()
-
 
 # %%
 # ### More Events :D
@@ -447,6 +444,7 @@ circles = list()
 for x in range(0, 50, 10):
     circles.append(make_circle(center=(x, 0), radius=4, n_points=100))
 
+    
 # %%
 
 fig = fpl.Figure()
@@ -520,7 +518,6 @@ fig[0, 0].auto_scale()
 
 fig.show(maintain_aspect=False)
 
-
 # %%
 
 # change the color of the sine wave based on the location of the linear selector
@@ -532,7 +529,6 @@ def set_color_at_index(ev):
     g = ev.graphic.parent
     # change the color of the sine graphic at the index of the selector
     g.colors[ix] = "green"
-
 
 # %%
 
@@ -546,6 +542,7 @@ fig = fpl.Figure((2, 1))
 
 # data to plot
 xs = np.linspace(0, 10 * np.pi, 1_000)
+
 sine = np.sin(xs)
 sine += 100
 
@@ -571,6 +568,7 @@ def set_zoom_x(ev):
     # remove the current zoomed data
     # and update with new selected data
     global zoomed_x
+
     fig[1, 0].remove_graphic(zoomed_x)
     zoomed_x = fig[1, 0].add_line(selected_data)
     fig[1, 0].auto_scale()

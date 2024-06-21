@@ -33,6 +33,13 @@ using [pynapple](https://pynapple-org.github.io/pynapple/). This will largely be
 review of what we went through yesterday. After we've explored the data some, we'll
 introduce the Generalized Linear Model and how to fit it with NeMoS.
 
+
+<div class="notes">
+Data for this notebook is a patch clamp experiment with a mouse V1 neuron, from the [Allen Brain Atlas](https://celltypes.brain-map.org/experiment/electrophysiology/478498617)
+
+![Allen Brain Atlas view of the data we will analyze.](../../assets/allen_data.png)
+</div>
+
 ## Learning objectives {.keep-text}
 
 - Learn how to explore spiking data and do basic analyses using pynapple
@@ -119,20 +126,18 @@ print(data)
 #
 # Now let's go through the relevant variables in some more detail:
 # <div class="notes">"
-# - `units`: Tsgroup, dictionary of neurons, holding each neuron's spike timestamps.
-# - `epochs`: IntervalSet, start and end times of different intervals, defining the
-#   experimental structure, specifying when each stimulation protocol began and
-#   ended.
+
+# ![Annotated view of the data we will analyze.](../../assets/allen_data_annotated.gif)
+#
 # - `stimulus`: Tsd containing injected current, in Amperes, sampled at 20k Hz.
 # - `response`: Tsd containing the neuron's intracellular voltage, sampled at 20k Hz.
+# - `units`: Tsgroup, dictionary of neurons, holding each neuron's spike timestamps.
+# - `epochs`: IntervalSet, dictionary with start and end times of different intervals,
+#   defining the experimental structure, specifying when each stimulation protocol began
+#   and ended.
 # </div>
 #
 # First, let's examine the epochs:
-# <div class="notes">"
-# - `epochs`: dictionary of start and end times of different intervals, defining the
-#   experimental structure, specifying when each stimulation protocol began and
-#   ended.
-# </div>
 
 epochs = data["epochs"]
 epochs.keys()
@@ -501,7 +506,7 @@ print(f"count shape: {count.shape}")
 #     of the existing dimensions?
 #
 #     In NeMoS, we fit Generalized Linear Models to a single neuron at a time. We'll
-#     discuss this more in the [following tutorial](../02_head_direction/), but briefly:
+#     discuss this more in the [following tutorial](../06_head_direction/), but briefly:
 #     you get the same answer whether you fit the neurons separately or simultaneously,
 #     and fitting them separately can make your life easier. We also provide a
 #     `PopulationGLM` object to fit an entirely population at once, if you prefer to do
