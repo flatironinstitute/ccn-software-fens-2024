@@ -102,7 +102,7 @@ print(tsgroup)
 #
 # We reduced 12 variables in our workspace to 5 using pynapple. Now we can see how the objects interact.
 #
-# **Question:** Can you print the `time_support` of `TsGroup`?
+# **Question:** Can you print the `time_support` of `tsgroup`?
 
 print(tsgroup.time_support)
 
@@ -114,7 +114,7 @@ print(tsgroup.time_support)
 tsgroup = nap.TsGroup({0:ts1, 1:tsd2, 2:ts3}, time_support = nap.IntervalSet(0, 100))
 
 # %%
-# **Question:** Can ou print the `time_support` and `rate` to see how they changed?
+# **Question:** Can you print the `time_support` and `rate` to see how they changed?
 
 print(tsgroup.time_support)
 print(tsgroup.rate)
@@ -153,7 +153,7 @@ print(tsd1.time_support)
 print(np.mean(tsd3, 0))
 
 # %%
-# **Question:**: can you compute the average of `tsd2` along the column axis and print it?
+# **Question:**: can you compute the average of `tsd2` for each timestamps and print it?
 
 print(np.mean(tsd2, 1))
 
