@@ -1,11 +1,13 @@
 from typing import *
-from fastplotlib import ImageGraphic, LinearSelector
+from fastplotlib import ImageGraphic, LinearSelector, ScatterGraphic
 from ipywidgets import IntSlider, FloatSlider
 from pynapple import TsdFrame, TsdTensor
 
 from fastplotlib.graphics._features import FeatureEvent
 
 MARGIN: float = 1
+
+
 # TODO: need to make a method for automatic MARGIN setting based on the data
 
 
@@ -15,7 +17,7 @@ class TimeStoreComponent:
         return self._subscriber
 
     @property
-    def data(self) -> TsdFrame | None:
+    def data(self) -> TsdFrame | TsdTensor | None:
         return self._data
 
     @property
@@ -24,8 +26,6 @@ class TimeStoreComponent:
 
     @property
     def data_filter(self) -> callable:
-        if self._data_filter is None:
-            return self.data
         return self._data_filter
 
     def __init__(self, subscriber, data=None, data_filter=None, multiplier=None):
@@ -38,12 +38,12 @@ class TimeStoreComponent:
         self._subscriber = subscriber
 
         # must have data if ImageGraphic
-        if isinstance(self.subscriber, ImageGraphic):
+        if isinstance(self.subscriber, (ImageGraphic, ScatterGraphic)):
             if not isinstance(data, (TsdFrame, TsdTensor)):
                 raise ValueError("If passing in `ImageGraphic` must provide associated `TsdFrame` to update data with.")
             self._data = data
-            if data_filter is not None:
-                self._data_filter = data_filter
+
+        self._data_filter = data_filter
 
 
 class TimeStore:
@@ -76,7 +76,7 @@ class TimeStore:
         self._time = 0
 
     def subscribe(self,
-                  subscriber: ImageGraphic | LinearSelector | IntSlider | FloatSlider,
+                  subscriber: ImageGraphic | LinearSelector | ScatterGraphic | IntSlider | FloatSlider,
                   data: TsdFrame | TsdTensor = None,
                   data_filter: callable = None,
                   multiplier: int | float = None) -> None:
@@ -135,9 +135,14 @@ class TimeStore:
 
         for component in self.store:
             # update ImageGraphic data no matter what
-            if isinstance(component.subscriber, ImageGraphic):
-                new_data = component.data_filter(component.data.get(self.time))
-                if new_data.shape != component.subscriber.data.shape:
+            if isinstance(component.subscriber, ScatterGraphic):
+                component.subscriber.data = component.data.get(self.time)
+            elif isinstance(component.subscriber, ImageGraphic):
+                if component.data_filter is None:
+                    new_data = component.data.get(self.time)
+                else:
+                    new_data = component.data_filter(component.data.get(self.time))
+                if new_data.shape != component.subscriber.data.value.shape:
                     raise ValueError(f"data filter function: {component.data_filter} must return data in the same shape"
                                      f"as the current data")
                 component.subscriber.data = new_data
