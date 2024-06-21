@@ -5,6 +5,7 @@ import pathlib
 import shutil
 import subprocess
 import re
+import os
 
 
 @click.command()
@@ -15,7 +16,9 @@ def main():
     src_dir = repo_dir / 'src'
     subprocess.run(['python', scripts_dir / 'strip_text.py'], cwd=repo_dir)
     subprocess.run(['python', src_dir / 'workshop_utils' / 'fetch.py'], cwd=repo_dir)
-    subprocess.run(['mkdocs', 'build'], cwd=repo_dir)
+    env = os.environ.copy()
+    env['WGPU_FORCE_OFFSCREEN'] = '1'
+    subprocess.run(['mkdocs', 'build'], cwd=repo_dir, env=env)
     gen_nb_dir = repo_dir / 'site' / 'generated' / 'for_users'
     for f in gen_nb_dir.glob('*ipynb'):
         shutil.copy(f.absolute(), (nb_dir / f.name).absolute())
