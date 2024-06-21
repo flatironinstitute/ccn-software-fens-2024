@@ -6,7 +6,8 @@ This is inspired by scipy's datasets module.
 REGISTRY = {
     "allen_478498617.nwb": "262393d7485a5b39cc80fb55011dcf21f86133f13d088e35439c2559fd4b49fa",
     "Mouse32-140822.nwb": "1a919a033305b8f58b5c3e217577256183b14ed5b436d9c70989dee6dafe0f35",
-    "A0634-210617.nwb": None
+    "A0634-210617.nwb": None,
+    "Achilles_10252013.nwb": None,
 }
 
 OSF_TEMPLATE = "https://osf.io/{}/download"
@@ -15,6 +16,7 @@ REGISTRY_URLS = {
     "allen_478498617.nwb": OSF_TEMPLATE.format("vf2nj"),
     "Mouse32-140822.nwb": OSF_TEMPLATE.format("jb2gd"),
     "A0634-210617.nwb": OSF_TEMPLATE.format("28ths"),
+    "Achilles_10252013.nwb": OSF_TEMPLATE.format("hu5ma")
 }
 DOWNLOADABLE_FILES = list(REGISTRY_URLS.keys())
 
@@ -88,6 +90,7 @@ def main():
     fetch_data("allen_478498617.nwb")
     fetch_data("Mouse32-140822.nwb")
     fetch_data("A0634-210617.nwb")
+    fetch_data("Achilles_10252013.nwb")
 
 if __name__ == '__main__':
     main()
