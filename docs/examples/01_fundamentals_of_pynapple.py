@@ -102,7 +102,7 @@ print(tsgroup)
 #
 # We reduced 12 variables in our workspace to 5 using pynapple. Now we can see how the objects interact.
 #
-# **Question:** Can you print the `time_support` of `TsGroup`?
+# **Question:** Can you print the `time_support` of `tsgroup`?
 
 print(tsgroup.time_support)
 
@@ -114,7 +114,7 @@ print(tsgroup.time_support)
 tsgroup = nap.TsGroup({0:ts1, 1:tsd2, 2:ts3}, time_support = nap.IntervalSet(0, 100))
 
 # %%
-# **Question:** Can ou print the `time_support` and `rate` to see how they changed?
+# **Question:** Can you print the `time_support` and `rate` to see how they changed?
 
 print(tsgroup.time_support)
 print(tsgroup.rate)
@@ -153,7 +153,7 @@ print(tsd1.time_support)
 print(np.mean(tsd3, 0))
 
 # %%
-# **Question:**: can you compute the average of `tsd2` along the column axis and print it?
+# **Question:**: can you compute the average of `tsd2` for each timestamps and print it?
 
 print(np.mean(tsd2, 1))
 
@@ -276,38 +276,6 @@ plt.plot(tsd1)
 plt.plot(tsd1.threshold(0.0), 'o-')
 [plt.axvspan(s, e, alpha=0.2) for s,e in ep_above.values]
 
-
-
-# %%
-# ## Extra : pynajax {.strip-code,.keep-text}
-#
-# Currently, pynapple uses `numba` for accelerating functions. For example, the pynapple convolution function works on cpu with numba by default.
-#
-# **Question:** Can you convolve the `banana` column of time series `tsd2` with a uniform kernel of size 11?
-
-kernel = np.ones(11)/11
-
-new_banana = tsd2['banana'].convolve(kernel)
-
-
-# %%
-# **Question:** and plot it?
-
-plt.figure()
-plt.plot(tsd2['banana'])
-plt.plot(new_banana)
-
-# %%
-# `pynajax` is a package that can be used as a replacement for `numba` when accelerating functions.
-# To install `pynajax`, you can run the following cell.
-#
-# `pip install pynajax`
-#
-# **Question:** Setting the backend to `jax`, can you convolve `banana` again with a uniform kernel?
-
-nap.nap_config.set_backend("jax")
-
-new_banana = tsd2['banana'].convolve(kernel)
 
 # %%
 # ## Important

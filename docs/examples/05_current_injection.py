@@ -126,7 +126,6 @@ print(data)
 #
 # Now let's go through the relevant variables in some more detail:
 # <div class="notes">"
-
 # ![Annotated view of the data we will analyze.](../../assets/allen_data_annotated.gif)
 #
 # - `stimulus`: Tsd containing injected current, in Amperes, sampled at 20k Hz.
