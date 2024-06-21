@@ -401,10 +401,11 @@ plt.tight_layout()
 
 # %%
 # How do we make this quantitative?
-# **Question:** can you use the `score` method of `GLM` to check which model has a better likelihood on the test epochs?
+# **Question:** can you use the `score` method of `GLM` to check which model has a better score on the test epochs?
+# Use the `score_type='pseudo-r2-McFadden'` argument to get a score normalized between 0 and 1, the larger the better.
 
-print(f"position x phase score: {glm1.score(X1.restrict(ep_testing), count.restrict(ep_testing))}")
-print(f"position x phase + speed score: {glm2.score(X2.restrict(ep_testing), count.restrict(ep_testing))}")
+print(f"position x phase score: {glm1.score(X1.restrict(ep_testing), count.restrict(ep_testing), score_type='pseudo-r2-McFadden')}")
+print(f"position x phase + speed score: {glm2.score(X2.restrict(ep_testing), count.restrict(ep_testing), score_type='pseudo-r2-McFadden')}")
 
 # %%
 # ## Conclusion
