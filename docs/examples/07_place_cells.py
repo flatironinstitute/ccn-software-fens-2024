@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-# Fit place cell
+# Combining and comparing models. {.keep-text}
 
-!!! warning
-    To run this notebook locally, please download the [utility functions](https://github.com/flatironinstitute/nemos/tree/main/docs/neural_modeling/examples_utils) in the same folder as the example notebook.
 
 The data for this example are from [Grosmark, Andres D., and György Buzsáki. "Diversity in neural firing dynamics supports both rigid and learned hippocampal sequences." Science 351.6280 (2016): 1440-1443](https://www.science.org/doi/full/10.1126/science.aad1935).
 
@@ -18,11 +16,9 @@ from scipy.ndimage import gaussian_filter
 
 import nemos as nmo
 
-# configure plots some
-#plt.style.use("examples_utils/nemos.mplstyle")
 
 # %%
-# ## Data Streaming {.keep-text}
+# ## Data Streaming
 #
 # Here we load the data from OSF. The data is a NWB file.
 
@@ -34,7 +30,7 @@ path = fetch_data("Achilles_10252013.nwb")
 
 data = nap.load_file(path)
 
-data
+print(data)
 
 # %%
 # Let's extract the spike times, the position and the theta phase.
@@ -228,224 +224,223 @@ print(speed.shape)
 print(count.shape)
 
 # %%
-# ## Basis evaluation {.strip-code}
+# ## Basis evaluation {.strip-code,.keep-text}
 #
-# For each feature, we will use a different set of basis :
+# There are multiple features for this experiment that can explain the spiking activity i.e. `position`, `theta` and `speed`.
 #
-#   -   position : `nmo.basis.MSplineBasis`
-#   -   theta phase : `nmo.basis.CyclicBSplineBasis`
-#   -   speed : `nmo.basis.MSplineBasis`
-# <div class="notes">
-# - Instantiate 3 basis: one for position, one for phase and one for speed.
-# </div>
+# **Question:**Can you instantiate the right basis for each feature and call them respectively `position_basis`, `theta_basis`, `speed_basis`?
 
 position_basis = nmo.basis.MSplineBasis(n_basis_funcs=10)
 phase_basis = nmo.basis.CyclicBSplineBasis(n_basis_funcs=12)
 speed_basis = nmo.basis.MSplineBasis(n_basis_funcs=15)
 
 # %%
-# In addition, we will consider position and phase to be a joint variable. In NeMoS, we can combine basis by multiplying them and adding them. In this case the final basis object for our model can be made in one line :
-# <div class="notes">
-# - To form a 2D basis, multiply the position and phase basis
-# </div>
-
-basis = position_basis * phase_basis + speed_basis
-
-# %%
-# The object basis only tell us how each basis covers the feature space. For each timestep, we need to _evaluate_ what are the features value. For that we can call NeMoS basis:
-
-X = basis(position, theta, speed)
-
-# %%
-# `X` is our design matrix. For each timestamps, it contains the information about the current position,
-# speed and theta phase of the experiment. Notice how passing a pynapple object to the basis
-# also returns a `pynapple` object.
-
-print(X)
-
-# %%
-# ## Model learning
 #
-# We can now use the Poisson GLM from NeMoS to learn the model.
-# <div class="notes">
-# - Instantiate the GLM.
-# - Fit
-# </div>
+# Hippocampal place cells fires both in at a preferential phase for a particular position as seen above. To model this interaction, you need to combine basis with NeMoS.
+#
+# **Question:** Can you crate a new basis that is the product of `phase_basis` and `position_basis`?
 
-glm = nmo.glm.GLM(
+position_phase_basis = position_basis * phase_basis
+
+# %%
+# This basis set can be used to generate a design matrix.
+# 
+# **Question:** Using the right features, can you generate the right design matrix from the basis defined above?
+
+X1 = position_phase_basis(position, theta)
+
+print(X1)
+
+# %%
+# `X1` is our design matrix. It's time to learn our first model.
+#
+# ## Model learning {.strip-code,.keep-text}
+#
+# **Question:** Can you instantiate an unregularized GLM class with `LBFGS` as a solver?
+
+glm1 = nmo.glm.GLM(
     regularizer=nmo.regularizer.UnRegularized("LBFGS", solver_kwargs=dict(tol=10**-12))
 )
 
-glm.fit(X, count)
+# **Question:** ... and fit the model?
+
+glm1.fit(X1, count)
 
 # %%
-# ## Prediction
+# ## Prediction {.strip-code,.keep-text}
 #
-# Let's check first if our model can accurately predict the different tuning curves we displayed above. We can use the `predict` function of NeMoS and then compute new tuning curves
-# <div class="notes">
-# - Predict the rate
-# - Compute a 1D tuning curve for position
-# - Compute a 2D tuning curve for "phase x position"
-# - Compute a 1D tuning curve for speed
-# </div>
+# It's to predict some activity and see if we capture the position and phase interaction.
+# 
+# **Question:** Using the `predict` function of NeMoS, can you compute the firing in spikes per second?
 
-predicted_rate = glm.predict(X) / bin_size
-
-glm_pf = nap.compute_1d_tuning_curves_continuous(predicted_rate[:, np.newaxis], position, 50)
-glm_pos_theta, xybins = nap.compute_2d_tuning_curves_continuous(
-    predicted_rate[:, np.newaxis], data, 30, ep=within_ep
-)
-glm_speed = nap.compute_1d_tuning_curves_continuous(predicted_rate[:, np.newaxis], speed, 30)
+pred_rate_1 = glm1.predict(X1)/bin_size
 
 # %%
-# Let's display both tuning curves together.
-# <div class="notes">
-# - Plot the results.
-# </div>
+# We can compute a tuning curves from the predicted rate.
+#
+# **Question:** Using the right pynapple function, can you compute a 2D tuning curves of "phase x position" can call it `glm1_pos_theta`?
+#
 
-plotting.plot_position_phase_speed_tuning(
-    pf[neuron],
-    glm_pf[0],
-    tc_speed[neuron],
-    glm_speed[0],
-    tc_pos_theta[neuron],
-    glm_pos_theta[0],
-    xybins
-    )
+glm1_pos_theta, xybins = nap.compute_2d_tuning_curves_continuous(
+    pred_rate_1, data, 30, ep=within_ep
+)
+
+# %%
+# We can look at position and speed individually.
+#
+# **Question:** Using the right pynapple function, can you compute 1D tuning curves for `position` and `speed`
+
+# glm1_position = nap.compute_1d_tuning_curves_continuous(pred_rate_1, position, 50)
+# glm1_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_1, speed, 30)
+
+# %%
+# Let's display both tuning curves together. 
+
+# # {.keep-code}
+
+# plotting.plot_position_phase_speed_tuning(
+#     pf[neuron],
+#     glm1_pf[0],
+#     tc_speed[neuron],
+#     glm1_speed[0],
+#     tc_pos_theta[neuron],
+#     glm1_pos_theta[0],
+#     xybins
+#     )
 
 # %%
 # ## Model selection
 #
 # While this model captures nicely the features-rate relationship, it is not necessarily the simplest model. Let's construct several models and evaluate their score to determine the best model.
 #
-# !!! note
-#     To shorten this notebook, only a few combinations are tested. Feel free to expand this list.
-#
-# <div class="notes">
-# - Define a dictionary with different basis type and one with the corresponding features:
-#   - "position"
-#   - "position + speed"
-#   - "position + phase"
-#   - "position * phase + speed"
-# </div>
+# # !!! note
+# #     To shorten this notebook, only a few combinations are tested. Feel free to expand this list.
+# #
+# # <div class="notes">
+# # - Define a dictionary with different basis type and one with the corresponding features:
+# #   - "position"
+# #   - "position + speed"
+# #   - "position + phase"
+# #   - "position * phase + speed"
+# # </div>
 
-basis_dict = {
-    "position": position_basis,
-    "position + speed": position_basis + speed_basis,
-    "position + phase": position_basis + phase_basis,
-    "position * phase + speed": position_basis * phase_basis + speed_basis,
-}
+# basis_dict = {
+#     "position": position_basis,
+#     "position + speed": position_basis + speed_basis,
+#     "position + phase": position_basis + phase_basis,
+#     "position * phase + speed": position_basis * phase_basis + speed_basis,
+# }
 
-features = {
-    "position": (position,),
-    "position + speed": (position, speed),
-    "position + phase": (position, theta),
-    "position * phase + speed": (position, theta, speed),
-}
+# features = {
+#     "position": (position,),
+#     "position + speed": (position, speed),
+#     "position + phase": (position, theta),
+#     "position * phase + speed": (position, theta, speed),
+# }
 
-# %%
-# In a loop, we can (1) evaluate the basis, (2), fit the model, (3) compute the score and (4) predict the firing rate. For evaluating the score, we can define a train set of intervals and a test set of intervals.
-# <div class="notes">
-# - Split the time support: 50% trials for training and the other 50% for testing.
-# </div>
+# # %%
+# # In a loop, we can (1) evaluate the basis, (2), fit the model, (3) compute the score and (4) predict the firing rate. For evaluating the score, we can define a train set of intervals and a test set of intervals.
+# # <div class="notes">
+# # - Split the time support: 50% trials for training and the other 50% for testing.
+# # </div>
 
-train_iset = position.time_support[::2] # Taking every other epoch
-test_iset = position.time_support[1::2]
+# train_iset = position.time_support[::2] # Taking every other epoch
+# test_iset = position.time_support[1::2]
 
-# %%
-# Let's train all the models.
-# <div class="notes">
-# - Loop over the models.
-# - Fit & score each model.
-# </div>
+# # %%
+# # Let's train all the models.
+# # <div class="notes">
+# # - Loop over the models.
+# # - Fit & score each model.
+# # </div>
 
-scores = {}
-predicted_rates = {}
+# scores = {}
+# predicted_rates = {}
 
-for m in basis_dict:
-    print("1. Evaluating basis : ", m)
-    X = basis_dict[m](*features[m])
+# for m in basis_dict:
+#     print("1. Evaluating basis : ", m)
+#     X = basis_dict[m](*features[m])
 
-    print("2. Fitting model : ", m)
-    # glm = nmo.glm.GLM()
-    glm.fit(
-        X.restrict(train_iset),
-        count.restrict(train_iset),
-    )
+#     print("2. Fitting model : ", m)
+#     # glm = nmo.glm.GLM()
+#     glm.fit(
+#         X.restrict(train_iset),
+#         count.restrict(train_iset),
+#     )
 
-    print("3. Scoring model : ", m)
-    scores[m] = glm.score(
-        X.restrict(test_iset),
-        count.restrict(test_iset),
-        score_type="pseudo-r2-McFadden",
-    )
+#     print("3. Scoring model : ", m)
+#     scores[m] = glm.score(
+#         X.restrict(test_iset),
+#         count.restrict(test_iset),
+#         score_type="pseudo-r2-McFadden",
+#     )
 
-    print("4. Predicting rate")
-    predicted_rates[m] = glm.predict(X.restrict(test_iset)) / bin_size
-
-
-scores = pd.Series(scores)
-scores = scores.sort_values()
-
-# %%
-# Let's compute scores for each models.
-# <div class="notes">
-# - Plot all the scores.
-# </div>
-
-plt.figure(figsize=(5, 3))
-plt.barh(np.arange(len(scores)), scores)
-plt.yticks(np.arange(len(scores)), scores.index)
-plt.xlabel("Pseudo r2")
-plt.tight_layout()
+#     print("4. Predicting rate")
+#     predicted_rates[m] = glm.predict(X.restrict(test_iset)) / bin_size
 
 
-# %%
-# Some models are doing better than others.
-#
-# !!! warning
-#     A proper model comparison should be done by scoring models repetitively on various train and test set. Here we are only doing partial models comparison for the sake of conciseness.
-#
-# Alternatively, we can plot some tuning curves to compare each models visually.
+# scores = pd.Series(scores)
+# scores = scores.sort_values()
 
-tuning_curves = {}
+# # %%
+# # Let's compute scores for each models.
+# # <div class="notes">
+# # - Plot all the scores.
+# # </div>
 
-for m in basis_dict:
-    tuning_curves[m] = {
-        "position": nap.compute_1d_tuning_curves_continuous(
-            predicted_rates[m][:, np.newaxis], position, 50, ep=test_iset
-        ),
-        "speed": nap.compute_1d_tuning_curves_continuous(
-            predicted_rates[m][:, np.newaxis], speed, 20, ep=test_iset
-        ),
-    }
-
-# recompute tuning from spikes restricting to the test-set
-pf = nap.compute_1d_tuning_curves(spikes, position, 50, ep=test_iset)
-tc_speed = nap.compute_1d_tuning_curves(spikes, speed, 20, ep=test_iset)
+# plt.figure(figsize=(5, 3))
+# plt.barh(np.arange(len(scores)), scores)
+# plt.yticks(np.arange(len(scores)), scores.index)
+# plt.xlabel("Pseudo r2")
+# plt.tight_layout()
 
 
-fig = plt.figure(figsize=(8, 4))
-outer_grid = fig.add_gridspec(2, 2)
-for i, m in enumerate(basis_dict):
-    plotting.plot_position_speed_tuning(
-        outer_grid[i // 2, i % 2],
-        tuning_curves[m],
-        pf[neuron],
-        tc_speed[neuron],
-        m)
+# # %%
+# # Some models are doing better than others.
+# #
+# # !!! warning
+# #     A proper model comparison should be done by scoring models repetitively on various train and test set. Here we are only doing partial models comparison for the sake of conciseness.
+# #
+# # Alternatively, we can plot some tuning curves to compare each models visually.
 
-plt.tight_layout()
-plt.show()
+# tuning_curves = {}
 
-# %%
-# ## Conclusion
-#
-# Various combinations of features can lead to different results. Feel free to explore more. To go beyond this notebook, you can check the following references :
-#
-#   - [Hardcastle, Kiah, et al. "A multiplexed, heterogeneous, and adaptive code for navigation in medial entorhinal cortex." Neuron 94.2 (2017): 375-387](https://www.cell.com/neuron/pdf/S0896-6273(17)30237-4.pdf)
-#
-#   - [McClain, Kathryn, et al. "Position–theta-phase model of hippocampal place cell activity applied to quantification of running speed modulation of firing rate." Proceedings of the National Academy of Sciences 116.52 (2019): 27035-27042](https://www.pnas.org/doi/abs/10.1073/pnas.1912792116)
-#
-#   - [Peyrache, Adrien, Natalie Schieferstein, and Gyorgy Buzsáki. "Transformation of the head-direction signal into a spatial code." Nature communications 8.1 (2017): 1752.](https://www.nature.com/articles/s41467-017-01908-3)
-#
+# for m in basis_dict:
+#     tuning_curves[m] = {
+#         "position": nap.compute_1d_tuning_curves_continuous(
+#             predicted_rates[m][:, np.newaxis], position, 50, ep=test_iset
+#         ),
+#         "speed": nap.compute_1d_tuning_curves_continuous(
+#             predicted_rates[m][:, np.newaxis], speed, 20, ep=test_iset
+#         ),
+#     }
+
+# # recompute tuning from spikes restricting to the test-set
+# pf = nap.compute_1d_tuning_curves(spikes, position, 50, ep=test_iset)
+# tc_speed = nap.compute_1d_tuning_curves(spikes, speed, 20, ep=test_iset)
+
+
+# fig = plt.figure(figsize=(8, 4))
+# outer_grid = fig.add_gridspec(2, 2)
+# for i, m in enumerate(basis_dict):
+#     plotting.plot_position_speed_tuning(
+#         outer_grid[i // 2, i % 2],
+#         tuning_curves[m],
+#         pf[neuron],
+#         tc_speed[neuron],
+#         m)
+
+# plt.tight_layout()
+# plt.show()
+
+# # %%
+# # ## Conclusion
+# #
+# # Various combinations of features can lead to different results. Feel free to explore more. To go beyond this notebook, you can check the following references :
+# #
+# #   - [Hardcastle, Kiah, et al. "A multiplexed, heterogeneous, and adaptive code for navigation in medial entorhinal cortex." Neuron 94.2 (2017): 375-387](https://www.cell.com/neuron/pdf/S0896-6273(17)30237-4.pdf)
+# #
+# #   - [McClain, Kathryn, et al. "Position–theta-phase model of hippocampal place cell activity applied to quantification of running speed modulation of firing rate." Proceedings of the National Academy of Sciences 116.52 (2019): 27035-27042](https://www.pnas.org/doi/abs/10.1073/pnas.1912792116)
+# #
+# #   - [Peyrache, Adrien, Natalie Schieferstein, and Gyorgy Buzsáki. "Transformation of the head-direction signal into a spatial code." Nature communications 8.1 (2017): 1752.](https://www.nature.com/articles/s41467-017-01908-3)
+# #
