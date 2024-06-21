@@ -22,7 +22,7 @@ import nemos as nmo
 #plt.style.use("examples_utils/nemos.mplstyle")
 
 # %%
-# ## Data Streaming
+# ## Data Streaming {.keep-text}
 #
 # Here we load the data from OSF. The data is a NWB file.
 
@@ -228,13 +228,16 @@ print(speed.shape)
 print(count.shape)
 
 # %%
-# ## Basis evaluation
+# ## Basis evaluation {.strip-code}
 #
 # For each feature, we will use a different set of basis :
 #
 #   -   position : `nmo.basis.MSplineBasis`
 #   -   theta phase : `nmo.basis.CyclicBSplineBasis`
 #   -   speed : `nmo.basis.MSplineBasis`
+# <div class="notes">
+# - Instantiate 3 basis: one for position, one for phase and one for speed.
+# </div>
 
 position_basis = nmo.basis.MSplineBasis(n_basis_funcs=10)
 phase_basis = nmo.basis.CyclicBSplineBasis(n_basis_funcs=12)
@@ -242,6 +245,9 @@ speed_basis = nmo.basis.MSplineBasis(n_basis_funcs=15)
 
 # %%
 # In addition, we will consider position and phase to be a joint variable. In NeMoS, we can combine basis by multiplying them and adding them. In this case the final basis object for our model can be made in one line :
+# <div class="notes">
+# - To form a 2D basis, multiply the position and phase basis
+# </div>
 
 basis = position_basis * phase_basis + speed_basis
 
@@ -261,6 +267,10 @@ print(X)
 # ## Model learning
 #
 # We can now use the Poisson GLM from NeMoS to learn the model.
+# <div class="notes">
+# - Instantiate the GLM.
+# - Fit
+# </div>
 
 glm = nmo.glm.GLM(
     regularizer=nmo.regularizer.UnRegularized("LBFGS", solver_kwargs=dict(tol=10**-12))
@@ -272,6 +282,12 @@ glm.fit(X, count)
 # ## Prediction
 #
 # Let's check first if our model can accurately predict the different tuning curves we displayed above. We can use the `predict` function of NeMoS and then compute new tuning curves
+# <div class="notes">
+# - Predict the rate
+# - Compute a 1D tuning curve for position
+# - Compute a 2D tuning curve for "phase x position"
+# - Compute a 1D tuning curve for speed
+# </div>
 
 predicted_rate = glm.predict(X) / bin_size
 
@@ -283,7 +299,11 @@ glm_speed = nap.compute_1d_tuning_curves_continuous(predicted_rate[:, np.newaxis
 
 # %%
 # Let's display both tuning curves together.
-fig = plotting.plot_position_phase_speed_tuning(
+# <div class="notes">
+# - Plot the results.
+# </div>
+
+plotting.plot_position_phase_speed_tuning(
     pf[neuron],
     glm_pf[0],
     tc_speed[neuron],
@@ -301,13 +321,21 @@ fig = plotting.plot_position_phase_speed_tuning(
 # !!! note
 #     To shorten this notebook, only a few combinations are tested. Feel free to expand this list.
 #
+# <div class="notes">
+# - Define a dictionary with different basis type and one with the corresponding features:
+#   - "position"
+#   - "position + speed"
+#   - "position + phase"
+#   - "position * phase + speed"
+# </div>
 
-models = {
+basis_dict = {
     "position": position_basis,
     "position + speed": position_basis + speed_basis,
     "position + phase": position_basis + phase_basis,
     "position * phase + speed": position_basis * phase_basis + speed_basis,
 }
+
 features = {
     "position": (position,),
     "position + speed": (position, speed),
@@ -317,18 +345,26 @@ features = {
 
 # %%
 # In a loop, we can (1) evaluate the basis, (2), fit the model, (3) compute the score and (4) predict the firing rate. For evaluating the score, we can define a train set of intervals and a test set of intervals.
+# <div class="notes">
+# - Split the time support: 50% trials for training and the other 50% for testing.
+# </div>
 
 train_iset = position.time_support[::2] # Taking every other epoch
 test_iset = position.time_support[1::2]
 
 # %%
 # Let's train all the models.
+# <div class="notes">
+# - Loop over the models.
+# - Fit & score each model.
+# </div>
+
 scores = {}
 predicted_rates = {}
 
-for m in models:
+for m in basis_dict:
     print("1. Evaluating basis : ", m)
-    X = models[m](*features[m])
+    X = basis_dict[m](*features[m])
 
     print("2. Fitting model : ", m)
     # glm = nmo.glm.GLM()
@@ -353,6 +389,9 @@ scores = scores.sort_values()
 
 # %%
 # Let's compute scores for each models.
+# <div class="notes">
+# - Plot all the scores.
+# </div>
 
 plt.figure(figsize=(5, 3))
 plt.barh(np.arange(len(scores)), scores)
@@ -371,7 +410,7 @@ plt.tight_layout()
 
 tuning_curves = {}
 
-for m in models:
+for m in basis_dict:
     tuning_curves[m] = {
         "position": nap.compute_1d_tuning_curves_continuous(
             predicted_rates[m][:, np.newaxis], position, 50, ep=test_iset
@@ -388,7 +427,7 @@ tc_speed = nap.compute_1d_tuning_curves(spikes, speed, 20, ep=test_iset)
 
 fig = plt.figure(figsize=(8, 4))
 outer_grid = fig.add_gridspec(2, 2)
-for i, m in enumerate(models):
+for i, m in enumerate(basis_dict):
     plotting.plot_position_speed_tuning(
         outer_grid[i // 2, i % 2],
         tuning_curves[m],

@@ -3,7 +3,7 @@
 """
 # Fit head-direction population
 
-## Learning objectives {.keep-text}
+## Learning objectivesx
 
 - Learn how to add history-related predictors to NeMoS GLM
 - Learn how to reduce over-fitting with `Basis`
