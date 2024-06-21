@@ -8,3 +8,4 @@ conda clean --all -y
 FENS_DATA_DIR=/home/jovyan/data python ccn-software-fens-2024/scripts/setup.py
 mkdir -p notebooks
 cp ccn-software-fens-2024/notebooks/0*ipynb ./notebooks/
+sed -i 's|../docs/assets/|../ccn-software-fens-2024/docs/assets/|g' notebooks/*ipynb
