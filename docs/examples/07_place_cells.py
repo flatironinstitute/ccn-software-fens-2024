@@ -317,10 +317,14 @@ plt.tight_layout()
 # **Question:** Using the right pynapple function, can you compute 1D tuning curves for `position` and `speed`
 
 glm1_position = nap.compute_1d_tuning_curves_continuous(pred_rate_1, position, 50)
-glm1_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_1, speed, 30, minmax=(0, 100))
 
 # %%
-# ... and we can plot them next to the original tuning curves?
+# **Question:** ... and speed?
+
+glm1_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_1, speed, 20)
+
+# %%
+# We can plot them next to the original tuning curves?
 
 # {.keep-code}
 plt.figure(figsize = (15,4))
@@ -328,16 +332,17 @@ plt.figure(figsize = (15,4))
 plt.subplot(121)
 plt.title("position")
 plt.ylabel("rate (Hz)")
-plt.plot(pf[neuron])
-plt.plot(glm1_position)
-
+plt.plot(pf[neuron], label='raw')
+plt.plot(glm1_position, label='GLM1')
+plt.legend()
 plt.xlabel("cm")
 
 plt.subplot(122)
 plt.title("speed")
-plt.plot(tc_speed[neuron])
-plt.plot(glm1_speed)
+plt.plot(tc_speed[neuron], label='raw')
+plt.plot(glm1_speed, label = 'GLM1')
 plt.xlabel("cm/sec")
+plt.legend()
 
 # %%
 # **Question:** Even if we did not include explicitly speed as a regression we can capture some tuning. Why is that?
@@ -353,17 +358,20 @@ basis = position_phase_basis + speed_basis
 
 X2 = basis(position, theta, speed)
 
+# %%
+# **Question:** Can you instantiate an unregularized GLM model called `glm2`?
+
 glm2 = nmo.glm.GLM(
     regularizer=nmo.regularizer.UnRegularized("LBFGS", solver_kwargs=dict(tol=10**-12))
 )
 
-# fit
+#%%
+# **Question:** .. and fit it to `ep_training`?
 glm2.fit(X2.restrict(ep_training), count.restrict(ep_training))
 
 # %%
-# Let's compute again the tuning function from this model using pynapple.
+# **Question:** Can you predict firing rate of `glm2` for `ep_training` and call it `pred_rate_2`?
 
-# predict rate
 pred_rate_2 = glm2.predict(X2.restrict(ep_training))/bin_size
 
 # compute 1d and 2d tuning
