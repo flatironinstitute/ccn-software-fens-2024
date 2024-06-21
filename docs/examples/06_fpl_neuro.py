@@ -19,10 +19,11 @@ import fastplotlib as fpl
 import pynapple as nap
 from ipywidgets import FloatSlider, Layout, VBox
 from sidecar import Sidecar
-from utils import TimeStore
+from workshop_utils import TimeStore
 from IPython.display import display
 import numpy as np
 from skimage import measure
+import workshop_utils
 
 # %%
 
@@ -37,7 +38,7 @@ warnings.simplefilter('ignore')
 # - a region that is known to contain head-direction cells, or cells that fire when the animal's head is pointing in
 # a specific direction.
 
-data = nap.load_file("./data.nwb")
+data = nap.load_file(workshop_utils.fetch_data("A0634-210617.nwb"))
 
 print(data)
 

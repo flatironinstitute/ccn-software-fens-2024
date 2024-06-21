@@ -25,6 +25,7 @@
 - Sliders, support window functions, etc.
 
 """
+import os.path
 
 # %%
 # This notebook will go through some basic components of the `fastplotlib` API including how to instantiate a plot,
@@ -37,6 +38,8 @@
 import fastplotlib as fpl
 import numpy as np
 import imageio.v3 as iio
+import workshop_utils
+
 
 # %%
 # ## Simple Image
@@ -206,6 +209,76 @@ practice_fig.show()
 practice_fig.close()
 
 # %%
+#
+# ## `ImageWidget`
+#
+# Great for looking at multi-dimensional image data.
+
+# %%
+
+# get zfish data
+path = workshop_utils.fetch_zfish()
+
+# %%
+
+# load subsampled snippet of zebrafish data from Martin Haesemeyer
+zfish_data = np.load(path, allow_pickle=False)
+
+# %%
+
+# data is tzxy
+print(zfish_data.shape)
+
+# %%
+
+# get the number of planes
+n_planes = zfish_data.shape[1]
+print(n_planes)
+
+# %%
+
+iw_zfish = fpl.ImageWidget(
+    data=[zfish_data[:, i] for i in range(n_planes)],
+    window_funcs={"t": (np.mean, 5)},
+    names=[f"plane-{i}" for i in range(n_planes)],
+    cmap="gnuplot2",
+)
+
+iw_zfish.show(sidecar=True)
+
+# %%
+# ### Apply a window function
+
+#iw_zfish.window_funcs["t"].func = np.max
+
+# %%
+
+# close the plot
+iw_zfish.close()
+
+# %%
+# ### z-slider
+#
+# **ImageWidget will also give you a slider for "z" in addition to "t" if necessary**
+#
+# This example uses the same example data shown above, but displays them in a single subplot and ImageWidget
+# provides a z-slider. You can use window_funcs, frame_apply funcs, etc. There is no difference in ImageWidget
+# behavior with the z-slider.
+
+iw_z = fpl.ImageWidget(
+    data=zfish_data, # you can also provide a list of tzxy arrays
+    window_funcs={"t": (np.mean, 5)},
+    cmap="gnuplot2",
+)
+
+iw_z.show()
+
+# %%
+
+# close the plot
+iw_z.close()
+
+# %%
 # ## 2D Line Plots
 #
 # This example plots a sine wave, cosine wave, and ricker wavelet and demonstrates how **Graphic properties** can be
@@ -330,6 +403,10 @@ cosine_graphic.colors[50:] = sine_graphic.colors[50:]
 # %%
 # Examples:
 
+# first set the color of the sine and cosine wave to white so that we can better see the changes
+cosine_graphic.colors = "w"
+sine_graphic.colors = "w"
+
 # will print event data when the color of the cosine graphic changes
 @cosine_graphic.add_event_handler("colors")
 def callback_func(ev):
@@ -337,11 +414,6 @@ def callback_func(ev):
 
 
 # %%
-
-# first set the color of the sine and cosine wave to white so that we can better see the changes
-cosine_graphic.colors = "w"
-sine_graphic.colors = "w"
-
 
 # when the cosine graphic colors change, will also update the sine_graphic colors
 def change_colors(ev):
@@ -515,6 +587,3 @@ fig.close()
 # ## For more examples, please see our gallery:
 #
 # ### https://fastplotlib.readthedocs.io/en/latest/_gallery/index.html
-
-# %%
-# ## For a more comprehensive intro to the library, please see our guide:

@@ -23,7 +23,7 @@ class TimeStoreComponent:
         return self._multiplier
 
     @property
-    def data_filter(self) -> callable | None:
+    def data_filter(self) -> callable:
         if self._data_filter is None:
             return self.data
         return self._data_filter
@@ -89,11 +89,16 @@ class TimeStore:
             ipywidget or fastplotlib object to be synchronized
         data: pynapple.TsdFrame, optional
             If subscriber is a fastplotlib.ImageGraphic, must have an associating pynapple.TsdFrame to update data with.
+        data_filter: callable, optional
+            Function to apply to data before updating. Must return data in the same shape as input.
         multiplier: int | float, optional
             Scale the current time to reflect differing timescale.
         """
         # create a TimeStoreComponent
-        component = TimeStoreComponent(subscriber, data, multiplier)
+        component = TimeStoreComponent(subscriber=subscriber,
+                                       data=data,
+                                       data_filter=data_filter,
+                                       multiplier=multiplier)
 
         # add component to the store
         self._store.append(component)
@@ -114,7 +119,7 @@ class TimeStore:
                 if isinstance(component, (IntSlider, FloatSlider)):
                     component.unobserve(self._update_store)
                 if isinstance(component, LinearSelector):
-                    component.remove_event_handler(self._update_store, "selection")
+                    component.subscriber.remove_event_handler(self._update_store, "selection")
 
     def _update_store(self, ev):
         """Called when event occurs and store needs to be updated."""
