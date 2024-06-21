@@ -666,7 +666,7 @@ model = nmo.glm.PopulationGLM(
 
 # define a grid of parameters for the search
 param_grid = dict(regularizer__regularizer_strength=np.logspace(-3, 0, 4))
-param_grid
+print(param_grid)
 
 # define a GridSearch cross-validation from scikit-learn
 # with 2-folds
