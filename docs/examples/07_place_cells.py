@@ -54,7 +54,7 @@ spikes = spikes.getby_threshold("rate", 0.3)
 
 # %%
 # ## Place fields
-# Let's plot some data. We start by making place fields i.e firing rate as a function of position.
+# Let's plot some data. We start by making place fields i.e. firing rate as a function of position.
 
 pf = nap.compute_1d_tuning_curves(spikes, position, 50, position.time_support)
 
@@ -290,23 +290,34 @@ glm1_pos_theta, xybins = nap.compute_2d_tuning_curves_continuous(
 #
 # **Question:** Using the right pynapple function, can you compute 1D tuning curves for `position` and `speed`
 
-# glm1_position = nap.compute_1d_tuning_curves_continuous(pred_rate_1, position, 50)
-# glm1_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_1, speed, 30)
+glm1_position = nap.compute_1d_tuning_curves_continuous(pred_rate_1, position, 50)
+glm1_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_1, speed, 30)
 
 # %%
 # Let's display both tuning curves together. 
 
-# # {.keep-code}
+# {.keep-code}
+plt.figure()
 
-# plotting.plot_position_phase_speed_tuning(
-#     pf[neuron],
-#     glm1_pf[0],
-#     tc_speed[neuron],
-#     glm1_speed[0],
-#     tc_pos_theta[neuron],
-#     glm1_pos_theta[0],
-#     xybins
-#     )
+plt.subplot(121)
+plt.title("position")
+plt.ylabel("rate (Hz)")
+plt.plot(glm1_position)
+plt.xlabel("cm/sec")
+
+plt.subplot(122)
+plt.title("speed")
+plt.plot(glm1_position)
+plt.xlabel("cm")
+
+
+# **Question:** Can you compute a 2D tuning curve with pynapple for caputring the interaction between `speed` and `position`?
+
+glm1_position_phase = nap.compute_2d_tuning_curves_continuous(pred_rate_1, data, 50)
+
+# %%
+# Let's the result and compare with the raw data.
+
 
 # %%
 # ## Model selection
