@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="5cbdc36a-75d7-4e27-9e4a-b41698aa6fbd" name="Changes" comment="add new dataset to registry">
+      <change beforePath="$PROJECT_DIR$/docs/examples/06_head_direction.py" beforeDir="false" afterPath="$PROJECT_DIR$/docs/examples/06_head_direction.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/examples/07_place_cells.py" beforeDir="false" afterPath="$PROJECT_DIR$/docs/examples/07_place_cells.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/workshop_utils/plotting.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/workshop_utils/plotting.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="update_head_dir" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="2hjjcboJIL5j1kWLbitcNjIRipN" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.02_head_direction.executor": "Run",
+    "Python.04_head_direction.executor": "Run",
+    "Python.07_place_cells.executor": "Run",
+    "Python.fetch.executor": "Run",
+    "Python.strip_text.executor": "Debug",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "pynapple__notebook",
+    "last_opened_file_path": "/Users/ebalzani/Code/ccn-software-fens-2024",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  }
+}]]></component>
+  <component name="RunManager" selected="Python.07_place_cells">
+    <configuration name="02_head_direction" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ccn-software-fens-2024" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/docs/examples" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/docs/examples/02_head_direction.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="04_head_direction" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ccn-software-fens-2024" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/docs/examples" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/docs/examples/04_head_direction.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="07_place_cells" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ccn-software-fens-2024" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/docs/examples" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/docs/examples/07_place_cells.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="fetch" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ccn-software-fens-2024" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/workshop_utils" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/workshop_utils/fetch.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="strip_text" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ccn-software-fens-2024" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scripts" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/strip_text.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.07_place_cells" />
+        <item itemvalue="Python.fetch" />
+        <item itemvalue="Python.strip_text" />
+        <item itemvalue="Python.04_head_direction" />
+        <item itemvalue="Python.02_head_direction" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-5a2391486177-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.13763.11" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5cbdc36a-75d7-4e27-9e4a-b41698aa6fbd" name="Changes" comment="" />
+      <created>1718114460329</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1718114460329</updated>
+    </task>
+    <task id="LOCAL-00001" summary="deprecation warning">
+      <option name="closed" value="true" />
+      <created>1718116307056</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1718116307056</updated>
+    </task>
+    <task id="LOCAL-00002" summary="streamlined content">
+      <option name="closed" value="true" />
+      <created>1718117500129</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1718117500129</updated>
+    </task>
+    <task id="LOCAL-00003" summary="users">
+      <option name="closed" value="true" />
+      <created>1718118481537</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1718118481537</updated>
+    </task>
+    <task id="LOCAL-00004" summary="dded notes">
+      <option name="closed" value="true" />
+      <created>1718119398169</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1718119398169</updated>
+    </task>
+    <task id="LOCAL-00005" summary="improved text">
+      <option name="closed" value="true" />
+      <created>1718119606279</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1718119606279</updated>
+    </task>
+    <task id="LOCAL-00006" summary="improved code">
+      <option name="closed" value="true" />
+      <created>1718119710487</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1718119710487</updated>
+    </task>
+    <task id="LOCAL-00007" summary="improved code">
+      <option name="closed" value="true" />
+      <created>1718120264610</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1718120264610</updated>
+    </task>
+    <task id="LOCAL-00008" summary="strip code">
+      <option name="closed" value="true" />
+      <created>1718122590716</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1718122590716</updated>
+    </task>
+    <task id="LOCAL-00009" summary="streamline flow">
+      <option name="closed" value="true" />
+      <created>1718123186675</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1718123186675</updated>
+    </task>
+    <task id="LOCAL-00010" summary="simplified code">
+      <option name="closed" value="true" />
+      <created>1718124458582</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1718124458582</updated>
+    </task>
+    <task id="LOCAL-00011" summary="moved some strip code">
+      <option name="closed" value="true" />
+      <created>1718125014120</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1718125014120</updated>
+    </task>
+    <task id="LOCAL-00012" summary="undone edidts">
+      <option name="closed" value="true" />
+      <created>1718636134272</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1718636134272</updated>
+    </task>
+    <task id="LOCAL-00013" summary="improved note">
+      <option name="closed" value="true" />
+      <created>1718640053752</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1718640053752</updated>
+    </task>
+    <task id="LOCAL-00014" summary="moved plot and compare weights to utils">
+      <option name="closed" value="true" />
+      <created>1718716175464</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1718716175464</updated>
+    </task>
+    <task id="LOCAL-00015" summary="added gridsearch to tutorial">
+      <option name="closed" value="true" />
+      <created>1718809924354</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1718809924354</updated>
+    </task>
+    <task id="LOCAL-00016" summary="print grid">
+      <option name="closed" value="true" />
+      <created>1718810000174</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1718810000174</updated>
+    </task>
+    <task id="LOCAL-00017" summary="improved text and added keep paragraph">
+      <option name="closed" value="true" />
+      <created>1718813764401</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1718813764401</updated>
+    </task>
+    <task id="LOCAL-00018" summary="strip text using endswith">
+      <option name="closed" value="true" />
+      <created>1718814071482</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1718814071482</updated>
+    </task>
+    <task id="LOCAL-00019" summary="improve striptext">
+      <option name="closed" value="true" />
+      <created>1718814585157</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1718814585157</updated>
+    </task>
+    <task id="LOCAL-00020" summary="keep cv code">
+      <option name="closed" value="true" />
+      <created>1718814818483</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1718814818483</updated>
+    </task>
+    <task id="LOCAL-00021" summary="keep exercises">
+      <option name="closed" value="true" />
+      <created>1718814862551</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1718814862551</updated>
+    </task>
+    <task id="LOCAL-00022" summary="few fixes">
+      <option name="closed" value="true" />
+      <created>1718823126182</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1718823126182</updated>
+    </task>
+    <task id="LOCAL-00023" summary="print grid">
+      <option name="closed" value="true" />
+      <created>1718967562134</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1718967562134</updated>
+    </task>
+    <task id="LOCAL-00024" summary="add new dataset to registry">
+      <option name="closed" value="true" />
+      <created>1718969210528</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1718969210529</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="deprecation warning" />
+    <MESSAGE value="streamlined content" />
+    <MESSAGE value="users" />
+    <MESSAGE value="dded notes" />
+    <MESSAGE value="improved text" />
+    <MESSAGE value="improved code" />
+    <MESSAGE value="strip code" />
+    <MESSAGE value="streamline flow" />
+    <MESSAGE value="simplified code" />
+    <MESSAGE value="moved some strip code" />
+    <MESSAGE value="undone edidts" />
+    <MESSAGE value="improved note" />
+    <MESSAGE value="moved plot and compare weights to utils" />
+    <MESSAGE value="added gridsearch to tutorial" />
+    <MESSAGE value="improved text and added keep paragraph" />
+    <MESSAGE value="strip text using endswith" />
+    <MESSAGE value="improve striptext" />
+    <MESSAGE value="keep cv code" />
+    <MESSAGE value="keep exercises" />
+    <MESSAGE value="few fixes" />
+    <MESSAGE value="print grid" />
+    <MESSAGE value="add new dataset to registry" />
+    <option name="LAST_COMMIT_MESSAGE" value="add new dataset to registry" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/docs/examples/07_place_cells.py</url>
+          <line>11</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
