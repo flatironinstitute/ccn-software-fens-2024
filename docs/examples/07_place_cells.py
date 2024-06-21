@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-# Combining and comparing models. {.keep-text}
+# Combining and comparing models.
 
 
 The data for this example are from [Grosmark, Andres D., and György Buzsáki. "Diversity in neural firing dynamics supports both rigid and learned hippocampal sequences." Science 351.6280 (2016): 1440-1443](https://www.science.org/doi/full/10.1126/science.aad1935).
@@ -260,11 +260,12 @@ glm1 = nmo.glm.GLM(
 )
 
 # %%
-# For let's reserve half of the epochs for training and half is going to be use to compare model (testing).
+# Let's reserve half of the epochs for training and half is going to be use to compare model (testing).
 
 ep_training = count.time_support[::2]
 ep_testing = count.time_support[1::2]
 
+# %%
 # **Question:** ... and fit the model?
 
 glm1.fit(X1.restrict(ep_training), count.restrict(ep_training))
@@ -272,7 +273,7 @@ glm1.fit(X1.restrict(ep_training), count.restrict(ep_training))
 # %%
 # ## Prediction {.strip-code,.keep-text}
 #
-# It's to predict some activity and see if we capture the position and phase interaction.
+# It's time to predict some activity and see if we capture the position and phase interaction.
 # 
 # **Question:** Using the `predict` function of NeMoS, can you compute the firing in spikes per second?
 
@@ -295,7 +296,7 @@ glm1_position_phase, xybins = nap.compute_2d_tuning_curves_continuous(
 
 extent = (xybins[0][0], xybins[0][-1], xybins[1][0], xybins[1][-1])
 
-plt.figure()
+plt.figure(figsize = (15,4))
 plt.subplot(121)
 plt.title("Raw Tuning")
 plt.imshow(gaussian_filter(tc_pos_theta[neuron].T, 1), aspect="auto", origin="lower", extent=extent)
@@ -316,27 +317,32 @@ plt.tight_layout()
 # **Question:** Using the right pynapple function, can you compute 1D tuning curves for `position` and `speed`
 
 glm1_position = nap.compute_1d_tuning_curves_continuous(pred_rate_1, position, 50)
-glm1_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_1, speed, 30, minmax=(0, 100))
 
 # %%
-# ... and we can plot them next to the original tuning curves?
+# **Question:** ... and speed?
+
+glm1_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_1, speed, 20)
+
+# %%
+# We can plot them next to the original tuning curves?
 
 # {.keep-code}
-plt.figure()
+plt.figure(figsize = (15,4))
 
-plt.subplot(221)
+plt.subplot(121)
 plt.title("position")
 plt.ylabel("rate (Hz)")
-plt.plot(pf[neuron])
-plt.plot(glm1_position)
-
+plt.plot(pf[neuron], label='raw')
+plt.plot(glm1_position, label='GLM1')
+plt.legend()
 plt.xlabel("cm")
 
-plt.subplot(222)
+plt.subplot(122)
 plt.title("speed")
-plt.plot(tc_speed[neuron])
-plt.plot(glm1_speed)
+plt.plot(tc_speed[neuron], label='raw')
+plt.plot(glm1_speed, label = 'GLM1')
 plt.xlabel("cm/sec")
+plt.legend()
 
 # %%
 # **Question:** Even if we did not include explicitly speed as a regression we can capture some tuning. Why is that?
@@ -348,21 +354,24 @@ plt.xlabel("cm/sec")
 basis = position_phase_basis + speed_basis
 
 # %%
-# Let's the basis to create a new design matrix and fit a GLM on the training epoch.
+# Let's use the basis to create a new design matrix and fit a GLM on the training epoch.
 
 X2 = basis(position, theta, speed)
+
+# %%
+# **Question:** Can you instantiate an unregularized GLM model called `glm2`?
 
 glm2 = nmo.glm.GLM(
     regularizer=nmo.regularizer.UnRegularized("LBFGS", solver_kwargs=dict(tol=10**-12))
 )
 
-# fit
+#%%
+# **Question:** .. and fit it to `ep_training`?
 glm2.fit(X2.restrict(ep_training), count.restrict(ep_training))
 
 # %%
-# Let's compute again the tuning function from this model using pynapple.
+# **Question:** Can you predict firing rate of `glm2` for `ep_training` and call it `pred_rate_2`?
 
-# predict rate
 pred_rate_2 = glm2.predict(X2.restrict(ep_training))/bin_size
 
 # compute 1d and 2d tuning

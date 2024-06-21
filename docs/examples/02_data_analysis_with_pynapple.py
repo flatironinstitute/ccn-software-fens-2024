@@ -32,6 +32,8 @@ import numpy as np
 # Pynapple commit to support NWB for data loading. 
 # If you have installed the repository, you can run the following cell:
 
+# {.keep-code}
+
 path = workshop_utils.fetch_data("Mouse32-140822.nwb")
 
 print(path)
