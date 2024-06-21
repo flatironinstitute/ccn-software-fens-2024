@@ -306,7 +306,6 @@ workshop_utils.plotting.plot_and_compare_weights(
 # If we are correct, what would happen if we re-fit the weights on the other half of the data?
 # #### Inspecting the results
 # <div class="notes">
-
 # - Fit on the other half.
 # </div>
 # Fit on the test set.
@@ -448,8 +447,8 @@ print(self_connection.shape)
 #
 # <div class="notes">
 # - Fit the other half of the data.
-
 # </div>
+
 model_basis_second_half = nmo.glm.GLM(
     regularizer=nmo.regularizer.UnRegularized("LBFGS")
 )
@@ -479,6 +478,7 @@ workshop_utils.plotting.plot_and_compare_weights(
 # <div class="notes">
 # - Predict the rates
 # </div>
+
 rate_basis = model_basis.predict(conv_spk) * conv_spk.rate
 rate_history = model.predict(input_feature) * conv_spk.rate
 ep = nap.IntervalSet(start=8819.4, end=8821)
