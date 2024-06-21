@@ -283,15 +283,37 @@ glm1_position_phase, xybins = nap.compute_2d_tuning_curves_continuous(
 )
 
 # %%
-# We can look at position and speed individually.
+# We can compare this to the observed phase-position tuning curves.
+
+# {.keep-code}
+
+extent = (xybins[0][0], xybins[0][-1], xybins[1][0], xybins[1][-1])
+
+plt.figure()
+plt.subplot(121)
+plt.title("Raw Tuning")
+plt.imshow(gaussian_filter(tc_pos_theta[neuron].T, 1), aspect="auto", origin="lower", extent=extent)
+plt.xlabel("Position (cm)")
+plt.ylabel("Theta Phase (rad)")
+
+plt.subplot(122)
+plt.title("GLM 1 predicted Tuning")
+plt.imshow(gaussian_filter(np.transpose(glm1_position_phase[0]), 1), aspect="auto", origin="lower", extent=extent)
+plt.xlabel("Position (cm)")
+plt.ylabel("Theta Phase (rad)")
+
+plt.tight_layout()
+
+# %%
+# While this looks good, we can look at position and speed individually.
 #
 # **Question:** Using the right pynapple function, can you compute 1D tuning curves for `position` and `speed`
 
 glm1_position = nap.compute_1d_tuning_curves_continuous(pred_rate_1, position, 50)
-glm1_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_1, speed, 30)
+glm1_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_1, speed, 30, minmax=(0, 100))
 
 # %%
-# And we can plot both the 1D and the interaction.
+# ... and we can plot them next to the original tuning curves?
 
 # {.keep-code}
 plt.figure()
@@ -299,30 +321,19 @@ plt.figure()
 plt.subplot(221)
 plt.title("position")
 plt.ylabel("rate (Hz)")
+plt.plot(pf[neuron])
 plt.plot(glm1_position)
+
 plt.xlabel("cm/sec")
 
 plt.subplot(222)
 plt.title("speed")
+plt.plot(tc_speed[neuron])
 plt.plot(glm1_speed)
 plt.xlabel("cm")
 
 
-extent = (xybins[0][0], xybins[0][-1], xybins[1][0], xybins[1][-1])
 
-plt.subplot(223)
-plt.title("Raw Tuning")
-plt.imshow(gaussian_filter(tc_pos_theta[neuron].T, 1), aspect="auto", origin="lower", extent=extent)
-plt.xlabel("Position (cm)")
-plt.ylabel("Theta Phase (rad)")
-
-plt.subplot(224)
-plt.title("GLM predicted Tuning")
-plt.imshow(gaussian_filter(np.transpose(glm1_position_phase[0]), 1), aspect="auto", origin="lower", extent=extent)
-plt.xlabel("Position (cm)")
-plt.ylabel("Theta Phase (rad)")
-
-plt.tight_layout()
 
 # %%
 # ## Model selection
