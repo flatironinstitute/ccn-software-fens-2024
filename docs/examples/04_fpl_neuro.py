@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 
-"""
-# Neuroscience 🧠 using `fastplotlib` 🦜 and `pynapple` 🍍
+"""# Neuroscience 🧠 using `fastplotlib` 🦜 and `pynapple` 🍍
+
+!!! warning
+
+    mkdocs won't build this notebook, so the outputs won't be visible on the
+    https://flatironinstitute.github.io/ website. To see the outputs, download this
+    notebook and run it locally.
 
 """
 
@@ -344,7 +349,7 @@ temporal_fig["tuning-curve"].auto_scale(maintain_aspect=False)
 
 
 # %%
-# ### ### Add an event handler that allows us to "scroll" through the components and tuning curves :D
+# ### Add an event handler that allows us to "scroll" through the components and tuning curves :D
 @component_selector.add_event_handler("selection")
 def update_selected_trace(ev):
     ix = ev.get_selected_index()
