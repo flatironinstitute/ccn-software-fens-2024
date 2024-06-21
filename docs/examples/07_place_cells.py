@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-# Combining and comparing models.
+# Combining and comparing models. 
 
 
 The data for this example are from [Grosmark, Andres D., and György Buzsáki. "Diversity in neural firing dynamics supports both rigid and learned hippocampal sequences." Science 351.6280 (2016): 1440-1443](https://www.science.org/doi/full/10.1126/science.aad1935).
@@ -18,14 +18,14 @@ import nemos as nmo
 
 
 # %%
-# ## Data Streaming
+# ## Data Streaming {.keep-text}
 #
 # Here we load the data from OSF. The data is a NWB file.
 
 path = fetch_data("Achilles_10252013.nwb")
 
 # %%
-# ## Pynapple
+# ## Pynapple{.keep-text}
 # We are going to open the NWB file with pynapple
 
 data = nap.load_file(path)
@@ -53,7 +53,7 @@ spikes = spikes.getby_category("cell_type")["pE"]
 spikes = spikes.getby_threshold("rate", 0.3)
 
 # %%
-# ## Place fields
+# ## Place fields {.keep-text}
 # Let's plot some data. We start by making place fields i.e. firing rate as a function of position.
 
 pf = nap.compute_1d_tuning_curves(spikes, position, 50, position.time_support)
@@ -78,7 +78,7 @@ for i, n in enumerate(order):
 
 
 # %%
-# ## Phase precession
+# ## Phase precession {.keep-text}
 #
 # In addition to place modulation, place cells are also modulated by the theta oscillation. The phase at which neurons fire is dependant of the position. This phenomen is called "phase precession" (see [J. O’Keefe, M. L. Recce, "Phase relationship between hippocampal place units and the EEG theta rhythm." Hippocampus 3, 317–330 (1993).](https://doi.org/10.1002/hipo.450030307)
 #
@@ -152,7 +152,8 @@ plt.ylabel("Theta Phase (rad)")
 plt.tight_layout()
 
 # %%
-# ## Speed modulation
+# ## Speed modulation {.keep-text}
+#
 # The speed at which the animal traverse the field is not homogeneous. Does it influence the firing rate of hippocampal neurons? We can compute tuning curves for speed as well as average speed across the maze.
 # In the next block, we compute the speed of the animal for each epoch (i.e. crossing of the linear track) by doing the difference of two consecutive position multiplied by the sampling rate of the position.
 
@@ -235,7 +236,7 @@ speed_basis = nmo.basis.MSplineBasis(n_basis_funcs=15)
 #
 # Hippocampal place cells fires both in at a preferential phase for a particular position as seen above. To model this interaction, you need to combine basis with NeMoS.
 #
-# **Question:** Can you crate a new basis that is the product of `phase_basis` and `position_basis`?
+# **Question:** Can you create a new basis that is the product of `phase_basis` and `position_basis`?
 
 position_phase_basis = position_basis * phase_basis
 
@@ -260,13 +261,15 @@ glm1 = nmo.glm.GLM(
 )
 
 # %%
-# Let's reserve half of the epochs for training and half is going to be use to compare model (testing).
+# We can create a train set and test set out of `count` time support. 
+
+# {.keep-code}
 
 ep_training = count.time_support[::2]
 ep_testing = count.time_support[1::2]
 
 # %%
-# **Question:** ... and fit the model?
+# **Question:** Can you fit the model on the train set?
 
 glm1.fit(X1.restrict(ep_training), count.restrict(ep_training))
 
@@ -282,10 +285,10 @@ pred_rate_1 = glm1.predict(X1.restrict(ep_training))/bin_size
 # %%
 # We can compute a tuning curves from the predicted rate.
 #
-# **Question:** Using the right pynapple function, can you compute a 2D tuning curves of "phase x position" can call it `glm1_pos_theta`?
+# **Question:** Using the right pynapple function, can you compute a 2D tuning curves of "phase x position" and call it `pred1_position_phase`? *Note: the variable `data` contains both phase and position as a `TsdFrame`.*
 #
 
-glm1_position_phase, xybins = nap.compute_2d_tuning_curves_continuous(
+pred1_position_phase, xybins = nap.compute_2d_tuning_curves_continuous(
     pred_rate_1, data, 30, ep=within_ep
 )
 
@@ -305,7 +308,7 @@ plt.ylabel("Theta Phase (rad)")
 
 plt.subplot(122)
 plt.title("GLM 1 predicted Tuning")
-plt.imshow(gaussian_filter(np.transpose(glm1_position_phase[0]), 1), aspect="auto", origin="lower", extent=extent)
+plt.imshow(gaussian_filter(np.transpose(pred1_position_phase[0]), 1), aspect="auto", origin="lower", extent=extent)
 plt.xlabel("Position (cm)")
 plt.ylabel("Theta Phase (rad)")
 
@@ -314,14 +317,14 @@ plt.tight_layout()
 # %%
 # While this looks good, we can look at position and speed individually.
 #
-# **Question:** Using the right pynapple function, can you compute 1D tuning curves for `position` and `speed`
+# **Question:** Using the right pynapple function, can you compute 1D tuning curves for position (call it `pred1_position`)?
 
-glm1_position = nap.compute_1d_tuning_curves_continuous(pred_rate_1, position, 50)
+pred1_position = nap.compute_1d_tuning_curves_continuous(pred_rate_1, position, 50)
 
 # %%
-# **Question:** ... and speed?
+# **Question:** ... and speed (call it `pred1_speed`)?
 
-glm1_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_1, speed, 20)
+pred1_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_1, speed, 20)
 
 # %%
 # We can plot them next to the original tuning curves?
@@ -333,19 +336,19 @@ plt.subplot(121)
 plt.title("position")
 plt.ylabel("rate (Hz)")
 plt.plot(pf[neuron], label='raw')
-plt.plot(glm1_position, label='GLM1')
+plt.plot(pred1_position, label='GLM1')
 plt.legend()
 plt.xlabel("cm")
 
 plt.subplot(122)
 plt.title("speed")
 plt.plot(tc_speed[neuron], label='raw')
-plt.plot(glm1_speed, label = 'GLM1')
+plt.plot(pred1_speed, label = 'GLM1')
 plt.xlabel("cm/sec")
 plt.legend()
 
 # %%
-# **Question:** Even if we did not include explicitly speed as a regression we can capture some tuning. Why is that?
+# Even if we did not include explicitly speed as a regression we can capture some tuning. Why is that?
 #
 # Let's include the speed as a predictor to see if we get a qualitatively better match.
 #
@@ -354,7 +357,7 @@ plt.legend()
 basis = position_phase_basis + speed_basis
 
 # %%
-# Let's use the basis to create a new design matrix and fit a GLM on the training epoch.
+# **Question:** Can you use the basis to create a new design matrix call `X2` giving `position`, `theta` and `speed` variables?
 
 X2 = basis(position, theta, speed)
 
@@ -366,7 +369,7 @@ glm2 = nmo.glm.GLM(
 )
 
 #%%
-# **Question:** .. and fit it to `ep_training`?
+# **Question:** .. and fit it restricted to `ep_training`?
 glm2.fit(X2.restrict(ep_training), count.restrict(ep_training))
 
 # %%
@@ -374,41 +377,46 @@ glm2.fit(X2.restrict(ep_training), count.restrict(ep_training))
 
 pred_rate_2 = glm2.predict(X2.restrict(ep_training))/bin_size
 
-# compute 1d and 2d tuning
-glm2_position_phase, xybins = nap.compute_2d_tuning_curves_continuous(
-    pred_rate_2, data, 30, ep=within_ep
-)
+# %%
+# It's time to compare the tuning curves of `glm2` to the actual tuning for speed and position. 
+#
+# **Question:** Using the right pynapple function, can you compute the tuning curves for position and speed for the predicted firing rate of `glm2` (and call them `pred2_position` and `pred2_speed`)?
 
-glm2_position = nap.compute_1d_tuning_curves_continuous(pred_rate_2, position, 50)
-glm2_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_2, speed, 50, minmax=(0, 100))
+
+pred2_position = nap.compute_1d_tuning_curves_continuous(pred_rate_2, position, 50)
+pred2_speed = nap.compute_1d_tuning_curves_continuous(pred_rate_2, speed, 20)
 
 # %%
-# **Question:** if you re-plot the tuning function for this model, does it look like the fit significantly improve?
+# We can compare models with the original tuning curves.
 
-plt.figure()
+# {.keep-code}
 
-plt.subplot(221)
+plt.figure(figsize = (12, 5))
+
+plt.subplot(121)
 plt.title("position")
 plt.ylabel("rate (Hz)")
 plt.plot(pf[neuron])
-plt.plot(glm1_position, label="position x phase")
-plt.plot(glm2_position, label="position x phase + speed")
+plt.plot(pred1_position, label="position x phase")
+plt.plot(pred2_position, label="position x phase + speed")
 plt.legend()
 plt.xlabel("cm")
 
-plt.subplot(222)
+plt.subplot(122)
 plt.title("speed")
 plt.plot(tc_speed[neuron])
-plt.plot(glm1_speed, label="position x phase")
-plt.plot(glm2_speed, label="position x phase + speed")
+plt.plot(pred1_speed, label="position x phase")
+plt.plot(pred2_speed, label="position x phase + speed")
 plt.xlabel("cm/sec")
 plt.legend()
 plt.tight_layout()
 
 # %%
 # How do we make this quantitative?
+#
 # **Question:** can you use the `score` method of `GLM` to check which model has a better score on the test epochs?
-# Use the `score_type='pseudo-r2-McFadden'` argument to get a score normalized between 0 and 1, the larger, the better.
+#
+# *Note:* Use the `score_type='pseudo-r2-McFadden'` argument to get a score normalized between 0 and 1, the larger, the better.
 
 print(f"position x phase score: {glm1.score(X1.restrict(ep_testing), count.restrict(ep_testing), score_type='pseudo-r2-McFadden')}")
 print(f"position x phase + speed score: {glm2.score(X2.restrict(ep_testing), count.restrict(ep_testing), score_type='pseudo-r2-McFadden')}")
@@ -425,6 +433,4 @@ print(f"position x phase + speed score: {glm2.score(X2.restrict(ep_testing), cou
 #   - [Hardcastle, Kiah, et al. "A multiplexed, heterogeneous, and adaptive code for navigation in medial entorhinal cortex." Neuron 94.2 (2017): 375-387](https://www.cell.com/neuron/pdf/S0896-6273(17)30237-4.pdf)
 #
 #   - [McClain, Kathryn, et al. "Position–theta-phase model of hippocampal place cell activity applied to quantification of running speed modulation of firing rate." Proceedings of the National Academy of Sciences 116.52 (2019): 27035-27042](https://www.pnas.org/doi/abs/10.1073/pnas.1912792116)
-#
-#   - [Peyrache, Adrien, Natalie Schieferstein, and Gyorgy Buzsáki. "Transformation of the head-direction signal into a spatial code." Nature communications 8.1 (2017): 1752.](https://www.nature.com/articles/s41467-017-01908-3)
 #
