@@ -38,7 +38,7 @@ Before the workshop, please try to complete the following steps. If you are unab
 4. Navigate to the cloned github repo and install the required dependencies. This will install pynapple, fastplotlib, and nemos, as well as jupyter and several other packages.
     ```shell
     cd ccn-software-fens-2024
-    pip install .
+    pip install -e .
     ```
 5. Run our setup script to download data and prepare the notebooks:
     ```shell
