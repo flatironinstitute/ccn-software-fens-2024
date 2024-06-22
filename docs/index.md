@@ -38,7 +38,7 @@ Before the workshop, please try to complete the following steps. If you are unab
 4. Navigate to the cloned github repo and install the required dependencies. This will install pynapple, fastplotlib, and nemos, as well as jupyter and several other packages.
     ```shell
     cd ccn-software-fens-2024
-    pip install .
+    pip install -e .
     ```
 5. Run our setup script to download data and prepare the notebooks:
     ```shell
@@ -76,10 +76,15 @@ If you plan to bring your own data to the Monday afternoon session, please conve
 
 ## Binder
 
-If you are unable to get the [local install](#setup) working, or run into unforeseen issues during the workshop, we have also set up a [binder instance](https://binder.flatironinstitute.org/~wbroderick/fens2024) you can use. You will need to login with a google account in order to access the instance, and that account should be the email that you used when submitting your application. If you get a 403 Forbidden error or would like to use a different email account, send Billy Broderick a message on the workshop slack.
+If you are unable to get the [local install](#setup) working, or run into unforeseen issues during the workshop, we have also set up two binder instances you can use. For both, you will need to login with a google account in order to access the instance, and that account should be the email that you used when submitting your application. If you get a 403 Forbidden error or would like to use a different email account, send Billy Broderick a message on the workshop slack.
+
+The instances are:
+- [for the fastplotlib notebooks](https://binder.flatironinstitute.org/~kkolar/fpl)
+- [for the other notebooks](https://binder.flatironinstitute.org/~wbroderick/fens2024)
 
 Some usage notes:
 
 - You are only allowed to have a single binder instance running at a time, so if you get the "already have an instance running error", go to the [binderhub page](https://binder.flatironinstitute.org/hub/hub/home) (or click on "check your currently running servers" on the right of the page) to join your running instance.
 - If you lose connection halfway through the workshop, go to the [binderhub page](https://binder.flatironinstitute.org/hub/hub/home) to join your running instance rather than restarting the image.
 - This is important because if you restart the image, **you will lose all data and progress**. If this happens, see [this page](https://flatironinstitute.github.io/ccn-software-fens-2024/generated/just_code/) for notebooks that have the code to copy.
+- The binder will be shutdown automatically after 1 day of inactivity or 7 days of total usage. Data will not persist after the binder instance shuts down, so **please download any notebooks** you want to keep.
