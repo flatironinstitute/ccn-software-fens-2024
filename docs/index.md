@@ -62,7 +62,11 @@ If you plan to bring your own data to the Monday afternoon session, please conve
 
 ## Binder
 
-If you are unable to get the [local install](#setup) working, or run into unforeseen issues during the workshop, we have also set up a [binder instance](https://binder.flatironinstitute.org/~wbroderick/fens2024) you can use. You will need to login with a google account in order to access the instance, and that account should be the email that you used when submitting your application. If you get a 403 Forbidden error or would like to use a different email account, send Billy Broderick a message on the workshop slack.
+If you are unable to get the [local install](#setup) working, or run into unforeseen issues during the workshop, we have also set up two binder instances you can use. For both, you will need to login with a google account in order to access the instance, and that account should be the email that you used when submitting your application. If you get a 403 Forbidden error or would like to use a different email account, send Billy Broderick a message on the workshop slack.
+
+The instances are:
+- [for the fastplotlib notebooks](https://binder.flatironinstitute.org/~kkolar/fpl)
+- [for the other notebooks](https://binder.flatironinstitute.org/~wbroderick/fens2024)
 
 Some usage notes:
 
