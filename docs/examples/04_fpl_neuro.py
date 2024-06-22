@@ -26,7 +26,7 @@ from scipy.stats import zscore
 from scipy.ndimage import gaussian_filter1d
 from sidecar import Sidecar
 import workshop_utils
-from workshop_utils import TimeStore
+from workshop_utils.store_model import TimeStore
 from IPython.display import display
 
 # %%
