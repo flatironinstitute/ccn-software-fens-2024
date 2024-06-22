@@ -50,6 +50,20 @@ Before the workshop, please try to complete the following steps. If you are unab
     ```
 7. Confirm the installation of `fastplotlib` and associated libraries worked by running `jupyter lab`, opening up `notebooks/test_fastplotlib_installation.ipynb` and ensuring that you can run the notebook to completion without any errors.
 
+!!! warning "Could not find `wgpu` binary"
+    If the `checks_setup.py` fails because it could not find the `wpu` binary, you may need to install `wgpu-py`
+     from conda. These are the steps:
+
+    1. Make sure that you have `conda-forge` in your channels.
+       ```shell
+       conda config --add channels conda-forge
+       conda config --set channel_priority strict
+       ```
+    2. Install `wgpu-py` through conda.
+       ```shell
+       conda install wgpu-py
+       ```
+
 If `check_setup.py` tells you setup was successful, then you're good to go. Otherwise, please come to the installation help session in the hotel, Palais Saschen Coburg room IV, on Saturday, so everyone is ready to get started Sunday morning.
 
 After doing the above, the `data/` and `notebooks/` directories within your local copy of the `ccn-software-fens-2024` repository will contain the NWB files and jupyter notebooks for the workshop.
