@@ -54,7 +54,7 @@ Before the workshop, please try to complete the following steps. If you are unab
 If `check_setup.py` tells you setup was successful, then you're good to go. Otherwise, please come to the installation help session in the hotel, Palais Saschen Coburg room IV, on Saturday, so everyone is ready to get started Sunday morning.
 
 !!! warning "Could not find `wgpu` binary"
-    If the `checks_setup.py` fails because it could not find the `wpu` binary, you may need to install `wgpu-py`
+    If the `checks_setup.py` fails because it could not find the `wgpu` binary, you may need to install `wgpu-py`
      from conda. These are the steps:
 
     1. Make sure that you have `conda-forge` in your channels.
